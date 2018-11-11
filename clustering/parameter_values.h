@@ -1,0 +1,5 @@
+#define H_FUNCTIONS_DEFAULT 4
+#define H_TABLES_DEFAULT 5
+
+#define EUCLIDEAN 1
+#define COSINE 2
