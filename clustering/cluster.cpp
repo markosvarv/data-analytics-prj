@@ -17,7 +17,7 @@ int readInput(list<dVector*>& dataList, const string& filename) {
 
     if(!in) {
         cout << "Cannot open input file.\n";
-        return -1;
+        return 0;
     }
     string str;
     unsigned long count=0;
@@ -38,14 +38,14 @@ int readConfig(const string& filename, int& clusters, int& hash_functions, int& 
     ifstream in(filename);
     if(!in) {
         cout << "Cannot open input file.\n";
-        return -1;
+        return 0;
     }
 
     string word1, word2;
 
     for (int i=0; i<3; i++) {
         in >> word1 >> word2;
-        cout << word1 << word2 << endl;
+        //cout << word1 << word2 << endl;
         if (word1 == "number_of_clusters:") clusters = stoi(word2);
         else if (word1 == "number_of_hash_functions:") hash_functions = stoi(word2);
         else if (word1 == "number_of_hash_tables:") hash_tables = stoi(word2);
@@ -53,6 +53,16 @@ int readConfig(const string& filename, int& clusters, int& hash_functions, int& 
     }
     in.close();
     return 1;
+}
+
+
+int readMetric (const string& metric) {
+    if (metric=="euclidean") return EUCLIDEAN;
+    else if (metric=="cosine") return COSINE;
+    else {
+        cerr << "Unknown metric " << metric << endl;
+        return UNKNOWN_METRIC;
+    }
 }
 
 
@@ -89,24 +99,32 @@ int main(int argc, char *argv[]) {
                 abort();
         }
     }
-    printf("ivalue = %s; cvalue=%s; ovalue=%s, dvalue=%s\n", ivalue, cvalue, ovalue, dvalue);
+    //printf("ivalue = %s; cvalue=%s; ovalue=%s, dvalue=%s\n", ivalue, cvalue, ovalue, dvalue);
 
     if (!ivalue || !cvalue || !ovalue || !dvalue) {
         cout << "Arguments cannot be empty\n";
         return -1;
     }
 
-    int clusters=0, hash_functions=H_FUNCTIONS_DEFAULT, hash_tables=H_TABLES_DEFAULT;
+    int metric, clusters=0, hash_functions=H_FUNCTIONS_DEFAULT, hash_tables=H_TABLES_DEFAULT;
 
-    readConfig(cvalue, clusters, hash_functions, hash_tables);
+    if (!readConfig(cvalue, clusters, hash_functions, hash_tables)) {
+        cerr << "Error while reading configuration file\n";
+        return -1;
+    }
 
     if (clusters<=1) {
         cerr << "Number of clusters must be higher than 1\n";
         return -1;
     }
 
+    if (((metric=readMetric(dvalue)))==UNKNOWN_METRIC) return -1;
+
     list<dVector*> vectorsList;
-    readInput(vectorsList, ivalue);
+    if (!readInput(vectorsList, ivalue)) {
+        cerr << "Error while reading input file\n";
+        return -1;
+    }
 
     for (auto i = vectorsList.begin(); i != vectorsList.end(); i++) delete (*i);
 }
