@@ -1,3 +1,7 @@
+//
+// Created by mark on 19/11/2018.
+//
+
 #include <iostream>
 #include <vector>
 #ifndef INC_1_DVECTOR_H
@@ -8,6 +12,7 @@ class dVector {
 private:
     std::string name;
     std::vector<double> p;
+    int cluster_num;
     std::vector<double> g;
 
 public:
@@ -15,8 +20,15 @@ public:
     void setG (const std::vector<double> given_g);
     std::vector<double> getG ();
     std::string getName() const;
+    void setCluster_num (int cluster) {
+        cluster_num=cluster;
+    }
+    int getCluster_num (void) {
+        return cluster_num;
+    }
     std::vector<double> getVector () const;
     static dVector* readVector (std::string str, unsigned long i);
 };
 
 #endif //INC_1_DVECTOR_H
+

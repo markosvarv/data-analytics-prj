@@ -3,4 +3,4 @@
 
 #define EUCLIDEAN 1
 #define COSINE 2
-#define UNKNOWN_METRIC -1
+#define UNKNOWN_METRIC 0
