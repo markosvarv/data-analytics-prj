@@ -25,5 +25,8 @@ public:
     void addVectors (vector<double>& a, const vector<double>& b);
 
     void eraseVector (int vector_num);
-};
+
+    double vectorAverageDistance (vector<dVector*>& dataVector, int vector_num, int metric);
+
+    };
 #endif //INC_2_CLUSTER_CLASS_H

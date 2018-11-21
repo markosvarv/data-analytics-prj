@@ -70,6 +70,31 @@ unsigned int readMetric (const string& metric) {
     }
 }
 
+double silhouette (vector<dVector*> dataVector, Cluster clusters[], int metric) {
+    unsigned int obj_num=0;
+    double sil_sum = 0;
+
+    //for every vector compute the average distance from its cluster
+    //and the average distance from the second best cluster
+    for (auto vector : dataVector) {
+        int cluster = vector->getCluster_num();
+        int second_best_cluster = vector->getSecond_best_cluster();
+
+        double ai = clusters[cluster].vectorAverageDistance(dataVector, obj_num, metric);
+        double bi = clusters[second_best_cluster].vectorAverageDistance(dataVector, obj_num, metric);
+
+        double max;
+        ai > bi ? max=ai : max=bi;
+        sil_sum += (bi-ai)/max;
+        obj_num++;
+    }
+    return sil_sum/dataVector.size();
+}
+
+int kmeanspp_init (set<int>& centers) {
+
+}
+
 
 int main(int argc, char *argv[]) {
     int opt;
@@ -137,10 +162,14 @@ int main(int argc, char *argv[]) {
     //initializing
     Cluster clusters[k];
     set<int> centers;
+
+
     while (centers.size() < k) {
         long num = rand() % dataVector.size();
         centers.insert(num);
     }
+
+
     int cluster_num=0;
     for(auto c : centers) {
         clusters[cluster_num].setCenter(dataVector[c]->getVector());
@@ -167,6 +196,7 @@ int main(int argc, char *argv[]) {
 
             clusters[new_cluster_num].addObjToCluster(obj_num);
             vector->setCluster_num(new_cluster_num);
+            vector->setSecond_best_cluster(second_best);
             obj_num++;
         }
         cout << change << endl;
@@ -177,7 +207,9 @@ int main(int argc, char *argv[]) {
         }
     }while(change);
 
-
+    //evaluation
+    double ev = silhouette(dataVector, clusters, metric);
+    cout << "ev = " << ev << endl;
 
     for (auto i = dataVector.begin(); i != dataVector.end(); i++) delete (*i);
 }
