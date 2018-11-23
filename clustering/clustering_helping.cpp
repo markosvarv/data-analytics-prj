@@ -62,11 +62,6 @@ tuple<int, int> getNearestCluster (const vector<double>& obj, Cluster clusters[]
     for (unsigned int i=0; i<clusters_num; i++) {
         vector<double> p = clusters[i].getCenter();
 
-//        for (auto pelement : p) {
-//            cout << pelement << ' ';
-//        }
-//        cout << endl;
-
         double t = distance(obj, p, metric);
         if (t<=dmin) {
             second_cmin = cmin;
