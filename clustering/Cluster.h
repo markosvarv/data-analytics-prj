@@ -12,6 +12,7 @@ using namespace std;
 
 class Cluster {
 private:
+    int center_num;
     vector<double> center;
     set<int> vectors;
 public:
@@ -26,7 +27,13 @@ public:
 
     void eraseVector (int vector_num);
 
-    double vectorAverageDistance (vector<dVector*>& dataVector, int vector_num, int metric);
+    int getItemsNum (void) {
+        return vectors.size();
+    }
+
+    double vectorDistanceSum (const vector<dVector*>& dataVector, int vector_num, int metric);
+
+    void updatePAM_Lloyds(const vector<dVector*>& dataVector, int metric);
 
     };
 #endif //INC_2_CLUSTER_CLASS_H

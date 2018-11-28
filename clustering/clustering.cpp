@@ -80,8 +80,10 @@ double silhouette (vector<dVector*> dataVector, Cluster clusters[], int metric) 
         int cluster = vector->getCluster_num();
         int second_best_cluster = vector->getSecond_best_cluster();
 
-        double ai = clusters[cluster].vectorAverageDistance(dataVector, obj_num, metric);
-        double bi = clusters[second_best_cluster].vectorAverageDistance(dataVector, obj_num, metric);
+        double ai=0;
+        if (clusters[cluster].getItemsNum()>1)
+            ai = clusters[cluster].vectorDistanceSum(dataVector, obj_num, metric)/(clusters[cluster].getItemsNum()-1); //-1 because cluster contains the object
+        double bi = clusters[second_best_cluster].vectorDistanceSum(dataVector, obj_num, metric)/clusters[second_best_cluster].getItemsNum();
 
         double max;
         ai > bi ? max=ai : max=bi;
@@ -220,7 +222,7 @@ int main(int argc, char *argv[]) {
         centers.insert(num);
     }
 
-//    kmeanspp_init(centers, dataVector, metric, k);
+    //kmeanspp_init(centers, dataVector, metric, k);
 
 
     int cluster_num=0;
@@ -236,33 +238,41 @@ int main(int argc, char *argv[]) {
         obj_num=0;
         change=false;
         //assignment
-        for (auto vector : dataVector) {
-            cluster_num=vector->getCluster_num();
+        for (auto vec : dataVector) {
+
+            cluster_num=vec->getCluster_num();
 
             int new_cluster_num, second_best;
-            tie(new_cluster_num, second_best) = getNearestCluster(vector->getVector(), clusters, metric, k);
-            //cout << new_cluster_num << ' ' << second_best << endl;
+            tie(new_cluster_num, second_best) = getNearestCluster(vec->getVector(), clusters, metric, k);
+
             if (cluster_num!=new_cluster_num) {
+                //if cluster has changed erase vector from previous cluster and add it to the new cluster
                 change=true;
                 if (cluster_num!=-1) clusters[cluster_num].eraseVector(obj_num);
+                clusters[new_cluster_num].addObjToCluster(obj_num);
+                vec->setCluster_num(new_cluster_num);
             }
-
-            clusters[new_cluster_num].addObjToCluster(obj_num);
-            vector->setCluster_num(new_cluster_num);
-            vector->setSecond_best_cluster(second_best);
+            vec->setSecond_best_cluster(second_best);
             obj_num++;
         }
         cout << change << endl;
 
         //update
-        for (unsigned int i = 0; i < k; i++) {
-            clusters[i].updateCenter(dataVector);
+        //update only if has been a change in clusters
+        if (change) {
+            cout << "mphka sto update\n";
+            for (unsigned int i = 0; i < k; i++) {
+                //clusters[i].updateCenter(dataVector);
+
+                clusters[i].updatePAM_Lloyds(dataVector, metric);
+            }
         }
     }while(change);
 
     //evaluation
     double ev = silhouette(dataVector, clusters, metric);
     cout << "ev = " << ev << endl;
+
 
     for (auto i = dataVector.begin(); i != dataVector.end(); i++) delete (*i);
 }

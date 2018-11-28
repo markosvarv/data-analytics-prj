@@ -35,8 +35,12 @@ double magnitude (const vector<double>& v) {
 }
 
 double distance (const vector<double>& v1, const vector<double>& v2, int metric) {
-    if (v1.size()!=v2.size()) {
+    unsigned long v1_size, v2_size;
+    v1_size=v1.size(); v2_size=v2.size();
+
+    if (v1_size!=v2_size) {
         cerr << "Error in distance. Vectors must have the same size" << endl;
+        //cout << "v1 size = " << v1_size << " v2 size = " << v2_size << endl;
         return -1.0;
     }
     switch (metric) {
