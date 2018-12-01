@@ -54,7 +54,7 @@ double distance (const vector<double>& v1, const vector<double>& v2, int metric)
 }
 
 //return the cluster id with the nearest center from the object obj
-tuple<int, int> getNearestCluster (const vector<double>& obj, Cluster clusters[], int metric, unsigned int clusters_num) {
+tuple<int, int, double> getNearestCluster (const vector<double>& obj, Cluster clusters[], int metric, unsigned int clusters_num) {
     //auto begin = chrono::high_resolution_clock::now();
 
     unsigned int cmin = clusters_num;
@@ -85,6 +85,6 @@ tuple<int, int> getNearestCluster (const vector<double>& obj, Cluster clusters[]
     //if (b) return make_tuple(b->getName(), dmin, ms);
     //else return make_tuple("", 0, 0);
 
-    return make_tuple(cmin, second_cmin);
+    return make_tuple(cmin, second_cmin, dmin);
 }
 

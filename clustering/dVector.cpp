@@ -1,4 +1,4 @@
-
+#include <limits>
 #include <iostream>
 #include <vector>
 #include <sstream>
@@ -6,10 +6,18 @@
 
 using namespace std;
 
-dVector::dVector(const string given_name, const vector<double> given_p) {
+dVector::dVector(const string given_name, const vector<double> given_p, int given_id) {
     name = given_name;
     p = given_p;
     cluster_num = -1;
+    second_best_cluster = -1;
+    id = given_id;
+    assigned=false;
+
+    cluster_dist = numeric_limits<double>::max();
+    second_cluster_dist = numeric_limits<double>::max();
+
+
 };
 
 std::vector<double> dVector::getVector () const {
@@ -21,7 +29,7 @@ std::string dVector::getName() const {
 }
 
 
-dVector* dVector::readVector (string str, unsigned long i) {
+dVector* dVector::readVector (string str, int given_id) {
     string delimiter = ",";
     vector<double> p;
 
@@ -65,6 +73,6 @@ dVector* dVector::readVector (string str, unsigned long i) {
         p.push_back(d);
     }
 
-    auto dValue = new dVector(name, p);
+    auto dValue = new dVector(name, p, given_id);
     return dValue;
 }

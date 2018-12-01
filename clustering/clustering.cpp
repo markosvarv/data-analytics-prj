@@ -7,11 +7,15 @@
 #include <fstream>
 #include <set>
 #include <random>
+#include <string>
+#include <unordered_map>
 
 #include "dVector.h"
 #include "parameter_values.h"
 #include "Cluster.h"
 #include "clustering_helping.h"
+#include "hFunction.h"
+#include "lsh.h"
 
 using namespace std;
 
@@ -24,13 +28,13 @@ int readInput(list<dVector*>& dataList, const string& filename) {
         return 0;
     }
     string str;
-    unsigned long count = 0;
+    int count = 0;
 
     while (getline(in, str)) {
         dVector *pValue;
         pValue = dVector::readVector(str, count++);
         dataList.push_back(pValue);
-        if (pValue->getVector().size()!=203) exit(1);
+        if (pValue->getVector().size()!=VECTOR_SIZE) exit(1);
     }
 
     in.close();
@@ -80,10 +84,14 @@ double silhouette (vector<dVector*> dataVector, Cluster clusters[], int metric) 
         int cluster = vector->getCluster_num();
         int second_best_cluster = vector->getSecond_best_cluster();
 
+        //cout << "cluster = " << cluster << "\tsecond_best = " << second_best_cluster << endl;
+
         double ai=0;
+        //cout << "eimai prin to if\n";
         if (clusters[cluster].getItemsNum()>1)
             ai = clusters[cluster].vectorDistanceSum(dataVector, obj_num, metric)/(clusters[cluster].getItemsNum()-1); //-1 because cluster contains the object
         double bi = clusters[second_best_cluster].vectorDistanceSum(dataVector, obj_num, metric)/clusters[second_best_cluster].getItemsNum();
+        //cout << "eimai meta to if\n";
 
         double max;
         ai > bi ? max=ai : max=bi;
@@ -146,6 +154,126 @@ int kmeanspp_init (set<int>& centers, vector<dVector*>& dataVector, int metric, 
         centers.insert(dvec_num);
     }
     return 1;
+}
+
+
+bool kmeans_assignment (vector<dVector*>& dataVector, Cluster clusters[], int metric, int k) {
+    bool change = false;
+    int obj_num=0;
+
+    for (auto vec : dataVector) {
+
+        int cluster_num=vec->getCluster_num();
+
+        double distance;
+        int new_cluster_num, second_best;
+        tie(new_cluster_num, second_best, distance) = getNearestCluster(vec->getVector(), clusters, metric, k);
+
+        //cout << distance << endl;
+
+        if (cluster_num!=new_cluster_num) {
+            //if cluster has changed erase vector from previous cluster and add it to the new cluster
+            change=true;
+            if (cluster_num!=-1) clusters[cluster_num].eraseVector(obj_num);
+            clusters[new_cluster_num].addObjToCluster(obj_num);
+            vec->setCluster_num(new_cluster_num);
+        }
+        vec->setSecond_best_cluster(second_best);
+        obj_num++;
+    }
+    return change;
+}
+
+bool range_assignment (unordered_map<string, list<dVector *>> umap[], vector<hFunction> hF[], default_random_engine& generator,
+        vector<dVector*>& dataVector, Cluster clusters[], int metric, int k) {
+
+    int obj_num=0;
+    int oldClusters[dataVector.size()];
+    for (auto vec : dataVector) {
+        oldClusters[obj_num] = vec->getCluster_num();
+        obj_num++;
+        vec->set_assigned(false);
+    }
+
+    //compute min distance between centers
+    double dmin = numeric_limits<double>::max();
+    for (int i=0; i<k; i++) {
+        vector<double> vec_i = clusters[i].getCenter();
+        for (int j=0; j<k; j++) {
+            if (i>=j) continue; //the centers matrix is symmetric
+            vector<double> vec_j = clusters[j].getCenter();
+            double t = distance (vec_i, vec_j, metric);
+            if (t<dmin) dmin=t;
+        }
+    }
+
+    double range_dist = dmin/2;
+
+    cout << "range_dist = " << range_dist << endl;
+
+    //for every cluster
+
+    //set<int> idset[k];
+
+    long total_assignments_num;
+    do {
+        total_assignments_num = 0;
+        for (int i = 0; i < k; i++) {
+            //for every center make range queries
+            vector<double> qValue = clusters[i].getCenter();
+
+            int assignments_num = rangeSearch(qValue, i, umap, hF, K_DEFAULT, L_DEFAULT, range_dist, metric);
+            cout << assignments_num << endl;
+            if (assignments_num == -1) {
+                cout << "ERROR in assignment\n";
+                return false;
+            }
+            total_assignments_num += assignments_num;
+        }
+        range_dist *= 2;
+        cout << "TOTAL:: " << total_assignments_num << endl;
+    }while (total_assignments_num!=0 || range_dist<=2*dmin);
+
+
+
+    bool change = false;
+    obj_num=0;
+    int count = 0;
+    for (auto vec : dataVector) {
+        //assign all unassigned vectors
+        if (!vec->is_assigned()) {
+            cout << "mphka sto if\n";
+            double dist;
+            int new_cluster_num, second_best;
+            tie(new_cluster_num, second_best, dist) = getNearestCluster(vec->getVector(), clusters, metric, k);
+            //cout << dist << endl;
+
+            vec->setCluster_num(new_cluster_num);
+            vec->setSecond_best_cluster(second_best);
+            vec->set_cluster_dist(dist);
+            count++;
+        }
+        if (vec->getSecond_best_cluster()==-1) {
+            cout << "mphka sto second best\n";
+            vec->setSecond_best_cluster(vec->getCluster_num());
+        }
+
+        int new_cluster_num=vec->getCluster_num();
+        //cout << "second_cluster_num = " << vec->getSecond_best_cluster() << endl;
+
+        if (oldClusters[obj_num]!=new_cluster_num) {
+            //if cluster has changed erase vector from previous cluster and add it to the new cluster
+            cout << "CHANGE!\n";
+            change=true;
+            if (oldClusters[obj_num]!=-1) clusters[new_cluster_num].eraseVector(obj_num);
+            clusters[new_cluster_num].addObjToCluster(obj_num);
+        }
+        obj_num++;
+    }
+    cout << "count = " << count << endl;
+
+
+    return change;
 }
 
 
@@ -232,44 +360,41 @@ int main(int argc, char *argv[]) {
         cluster_num++;
     }
 
-    unsigned int obj_num;
+
+    unordered_map<string, list<dVector *>> umap[L_DEFAULT];
+    vector<hFunction> hF[L_DEFAULT];
+    default_random_engine generator;
+
+    for (int i = 0; i < L_DEFAULT; i++) {
+        hF[i] = hFunction::init_hFunctions(VECTOR_SIZE, K_DEFAULT, generator);
+    }
+
+    if (!add_toHashTables (dataVector, K_DEFAULT, hF, umap, L_DEFAULT, metric)){
+        cerr << "ERROR in add to hashtables\n";
+        return 1;
+    }
+
     bool change;
     do {
-        obj_num=0;
-        change=false;
         //assignment
-        for (auto vec : dataVector) {
+        change = range_assignment(umap, hF, generator, dataVector, clusters, metric, k);
 
-            cluster_num=vec->getCluster_num();
 
-            int new_cluster_num, second_best;
-            tie(new_cluster_num, second_best) = getNearestCluster(vec->getVector(), clusters, metric, k);
-
-            if (cluster_num!=new_cluster_num) {
-                //if cluster has changed erase vector from previous cluster and add it to the new cluster
-                change=true;
-                if (cluster_num!=-1) clusters[cluster_num].eraseVector(obj_num);
-                clusters[new_cluster_num].addObjToCluster(obj_num);
-                vec->setCluster_num(new_cluster_num);
-            }
-            vec->setSecond_best_cluster(second_best);
-            obj_num++;
-        }
+        //change = kmeans_assignment(dataVector, clusters, metric, k);
         cout << change << endl;
 
         //update
         //update only if has been a change in clusters
         if (change) {
-            cout << "mphka sto update\n";
             for (unsigned int i = 0; i < k; i++) {
-                //clusters[i].updateCenter(dataVector);
-
-                clusters[i].updatePAM_Lloyds(dataVector, metric);
+                clusters[i].updateCenter(dataVector);
+                //clusters[i].updatePAM_Lloyds(dataVector, metric);
             }
         }
     }while(change);
 
     //evaluation
+    cout << "eimai prin tin silouet\n";
     double ev = silhouette(dataVector, clusters, metric);
     cout << "ev = " << ev << endl;
 
