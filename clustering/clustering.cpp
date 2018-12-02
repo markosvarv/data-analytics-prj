@@ -184,18 +184,7 @@ bool kmeans_assignment (vector<dVector*>& dataVector, Cluster clusters[], int me
     return change;
 }
 
-bool range_assignment (unordered_map<string, list<dVector *>> umap[], vector<hFunction> hF[], default_random_engine& generator,
-        vector<dVector*>& dataVector, Cluster clusters[], int metric, int k) {
-
-    int obj_num=0;
-    int oldClusters[dataVector.size()];
-    for (auto vec : dataVector) {
-        oldClusters[obj_num] = vec->getCluster_num();
-        obj_num++;
-        vec->set_assigned(false);
-    }
-
-    //compute min distance between centers
+double min_distance_between_centers (Cluster clusters[], int k, int metric) {
     double dmin = numeric_limits<double>::max();
     for (int i=0; i<k; i++) {
         vector<double> vec_i = clusters[i].getCenter();
@@ -206,53 +195,40 @@ bool range_assignment (unordered_map<string, list<dVector *>> umap[], vector<hFu
             if (t<dmin) dmin=t;
         }
     }
+    return dmin;
+};
 
-    double range_dist = dmin/2;
+void set_unassigned_vector (dVector* vec, Cluster clusters[], int metric, int k) {
+    double dist;
+    int new_cluster_num, second_best;
+    tie(new_cluster_num, second_best, dist) = getNearestCluster(vec->getVector(), clusters, metric, k);
+    //cout << dist << endl;
 
-    cout << "range_dist = " << range_dist << endl;
+    vec->setCluster_num(new_cluster_num);
+    vec->setSecond_best_cluster(second_best);
+    vec->set_cluster_dist(dist);
+}
 
-    //for every cluster
+void init_range_assignment (vector<dVector*>& dataVector, int oldClusters[]) {
+    int obj_num=0;
+    for (auto vec : dataVector) {
+        oldClusters[obj_num] = vec->getCluster_num();
+        obj_num++;
+        vec->set_assigned(false);
+    }
+}
 
-    //set<int> idset[k];
-
-    long total_assignments_num;
-    do {
-        total_assignments_num = 0;
-        for (int i = 0; i < k; i++) {
-            //for every center make range queries
-            vector<double> qValue = clusters[i].getCenter();
-
-            int assignments_num = rangeSearch(qValue, i, umap, hF, K_DEFAULT, L_DEFAULT, range_dist, metric);
-            cout << assignments_num << endl;
-            if (assignments_num == -1) {
-                cout << "ERROR in assignment\n";
-                return false;
-            }
-            total_assignments_num += assignments_num;
-        }
-        range_dist *= 2;
-        cout << "TOTAL:: " << total_assignments_num << endl;
-    }while (total_assignments_num!=0 || range_dist<=2*dmin);
-
-
-
-    bool change = false;
-    obj_num=0;
-    int count = 0;
+bool assign_all_vectors(vector<dVector*> dataVector, Cluster clusters[], int metric, int k, const int oldClusters[]) {
+    int obj_num=0;
+    bool change=false;
     for (auto vec : dataVector) {
         //assign all unassigned vectors
         if (!vec->is_assigned()) {
             cout << "mphka sto if\n";
-            double dist;
-            int new_cluster_num, second_best;
-            tie(new_cluster_num, second_best, dist) = getNearestCluster(vec->getVector(), clusters, metric, k);
-            //cout << dist << endl;
-
-            vec->setCluster_num(new_cluster_num);
-            vec->setSecond_best_cluster(second_best);
-            vec->set_cluster_dist(dist);
-            count++;
+            set_unassigned_vector(vec, clusters, metric, k);
         }
+
+        //second best cluster is the same cluster, if not assigned
         if (vec->getSecond_best_cluster()==-1) {
             cout << "mphka sto second best\n";
             vec->setSecond_best_cluster(vec->getCluster_num());
@@ -270,10 +246,47 @@ bool range_assignment (unordered_map<string, list<dVector *>> umap[], vector<hFu
         }
         obj_num++;
     }
-    cout << "count = " << count << endl;
-
-
+    //cout << "count = " << count << endl;
     return change;
+};
+
+int lsh_range_search (unordered_map<string, list<dVector *>> umap[], vector<hFunction> hF[], Cluster clusters[], int metric, int k, double range_dist) {
+    int total_assignments_num = 0;
+    for (int i = 0; i < k; i++) {
+        //for every center make range queries
+        vector<double> qValue = clusters[i].getCenter();
+
+        int assignments_num = rangeSearch(qValue, i, umap, hF, K_DEFAULT, L_DEFAULT, range_dist, metric);
+        cout << assignments_num << endl;
+        if (assignments_num == -1) {
+            cout << "ERROR in assignment\n";
+            return false;
+        }
+        total_assignments_num += assignments_num;
+    }
+    return total_assignments_num;
+}
+
+bool range_assignment (unordered_map<string, list<dVector *>> umap[], vector<hFunction> hF[], default_random_engine& generator,
+        vector<dVector*>& dataVector, Cluster clusters[], int metric, int k) {
+
+    int oldClusters[dataVector.size()];
+    init_range_assignment(dataVector, oldClusters);
+
+    double min_dist = min_distance_between_centers(clusters, k, metric);
+    double range_dist = min_dist/2;
+
+    cout << "range_dist = " << range_dist << endl;
+
+    long total_assignments_num;
+    do {
+        total_assignments_num=lsh_range_search(umap, hF, clusters, metric, k, range_dist);
+        range_dist *= 2;
+        cout << "TOTAL:: " << total_assignments_num << endl;
+    }while (total_assignments_num!=0 || range_dist<=2*min_dist);
+
+    //int count = 0;
+    return assign_all_vectors(dataVector, clusters, metric, k, oldClusters);
 }
 
 
