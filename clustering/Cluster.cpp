@@ -41,6 +41,7 @@ void Cluster::updatePAM_Lloyds(const vector<dVector*>& dataVector, int metric) {
     double dmin = numeric_limits<double>::max();
     int t = (int)dataVector.size();
 
+    cout << vectors.size() << endl;
     for (int vector_num : vectors) {
         //for every vector in cluster compute the min total distance from the other vectors
         double d = vectorDistanceSum(dataVector, vector_num, metric);
@@ -65,6 +66,7 @@ double Cluster::vectorDistanceSum (const vector<dVector*>& dataVector, int vecto
     double dsum = 0;
     //bool same_vector = false;
     for (int object : vectors) {
+        //cout << object << endl;
         if (object==vector_num) {
             //cout << "MPHKA STO IF\n";
             //same_vector = true;

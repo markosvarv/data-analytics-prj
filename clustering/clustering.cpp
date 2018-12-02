@@ -16,6 +16,7 @@
 #include "clustering_helping.h"
 #include "hFunction.h"
 #include "lsh.h"
+#include "cube.h"
 
 using namespace std;
 
@@ -250,7 +251,7 @@ bool assign_all_vectors(vector<dVector*> dataVector, Cluster clusters[], int met
     return change;
 };
 
-int lsh_range_search (unordered_map<string, list<dVector *>> umap[], vector<hFunction> hF[], Cluster clusters[], int metric, int k, double range_dist) {
+int lsh_range_search (unordered_map<string, list<dVector *>> umap[], const vector<hFunction> hF[], Cluster clusters[], int metric, int k, double range_dist) {
     int total_assignments_num = 0;
     for (int i = 0; i < k; i++) {
         //for every center make range queries
@@ -267,7 +268,7 @@ int lsh_range_search (unordered_map<string, list<dVector *>> umap[], vector<hFun
     return total_assignments_num;
 }
 
-bool range_assignment (unordered_map<string, list<dVector *>> umap[], vector<hFunction> hF[], default_random_engine& generator,
+bool lsh_range_assignment (unordered_map<string, list<dVector *>> umap[], const vector<hFunction> hF[], default_random_engine& generator,
         vector<dVector*>& dataVector, Cluster clusters[], int metric, int k) {
 
     int oldClusters[dataVector.size()];
@@ -281,6 +282,46 @@ bool range_assignment (unordered_map<string, list<dVector *>> umap[], vector<hFu
     long total_assignments_num;
     do {
         total_assignments_num=lsh_range_search(umap, hF, clusters, metric, k, range_dist);
+        range_dist *= 2;
+        cout << "TOTAL:: " << total_assignments_num << endl;
+    }while (total_assignments_num!=0 || range_dist<=2*min_dist);
+
+    //int count = 0;
+    return assign_all_vectors(dataVector, clusters, metric, k, oldClusters);
+}
+
+int cube_range_queries (list<dVector*> cube[], int cubeSize, const vector<hFunction>& hF, Cluster clusters[], int metric, int k, double range_dist) {
+    int total_assignments_num = 0;
+    for (int i = 0; i < k; i++) {
+        //for every center make range queries
+        vector<double> qValue = clusters[i].getCenter();
+
+        int assignments_num = cube_range_search(qValue, i, cube, cubeSize, hF, K_DEFAULT, range_dist, 3, metric, M_DEFAULT);
+        cout << assignments_num << endl;
+        if (assignments_num == -1) {
+            cout << "ERROR in assignment\n";
+            return false;
+        }
+        total_assignments_num += assignments_num;
+    }
+    return total_assignments_num;
+}
+
+
+bool cube_range_assignment (list<dVector*> cube[], int cubeSize, const vector<hFunction>& hF, default_random_engine& generator,
+                           vector<dVector*>& dataVector, Cluster clusters[], int metric, int k) {
+
+    int oldClusters[dataVector.size()];
+    init_range_assignment(dataVector, oldClusters);
+
+    double min_dist = min_distance_between_centers(clusters, k, metric);
+    double range_dist = min_dist/2;
+
+    cout << "range_dist = " << range_dist << endl;
+
+    long total_assignments_num;
+    do {
+        total_assignments_num = cube_range_queries(cube, cubeSize, hF, clusters, metric, k, range_dist);
         range_dist *= 2;
         cout << "TOTAL:: " << total_assignments_num << endl;
     }while (total_assignments_num!=0 || range_dist<=2*min_dist);
@@ -373,24 +414,35 @@ int main(int argc, char *argv[]) {
         cluster_num++;
     }
 
-
+    //init lsh
     unordered_map<string, list<dVector *>> umap[L_DEFAULT];
     vector<hFunction> hF[L_DEFAULT];
     default_random_engine generator;
-
-    for (int i = 0; i < L_DEFAULT; i++) {
-        hF[i] = hFunction::init_hFunctions(VECTOR_SIZE, K_DEFAULT, generator);
-    }
+    for (int i = 0; i < L_DEFAULT; i++) hF[i] = hFunction::init_hFunctions(VECTOR_SIZE, K_DEFAULT, generator);
 
     if (!add_toHashTables (dataVector, K_DEFAULT, hF, umap, L_DEFAULT, metric)){
         cerr << "ERROR in add to hashtables\n";
         return 1;
     }
 
+    //init cube
+//    int kvalue=CUBE_K_DEFAULT;
+//    default_random_engine generator;
+//    if (kvalue<=0) kvalue=(int)round(log10(dataVector.size()));
+//    int arraylen = int(pow(2, kvalue));
+//
+//    list<dVector*> cube[arraylen];
+//    vector<hFunction> hF;
+//    hF = hFunction::init_hFunctions(203, kvalue, generator);
+//
+//    add_toCube (dataVector, kvalue, hF, cube, metric);
+
     bool change;
     do {
         //assignment
-        change = range_assignment(umap, hF, generator, dataVector, clusters, metric, k);
+        change = lsh_range_assignment(umap, hF, generator, dataVector, clusters, metric, k);
+
+        //change = cube_range_assignment(cube, arraylen, hF, generator, dataVector, clusters, metric, k);
 
 
         //change = kmeans_assignment(dataVector, clusters, metric, k);

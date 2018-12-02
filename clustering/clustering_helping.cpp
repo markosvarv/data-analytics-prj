@@ -25,7 +25,7 @@ double euclideanDistance (const vector<double>& v1, const vector<double>& v2) {
 }
 
 double cosineDistance (const vector<double>& v1, const vector<double>& v2) {
-    return (inner_product(v1.begin(), v1.end(), v2.begin(), 0.0) / (magnitude(v1) * magnitude(v2)));
+    return (1-(inner_product(v1.begin(), v1.end(), v2.begin(), 0.0) / (magnitude(v1) * magnitude(v2))));
 }
 
 double magnitude (const vector<double>& v) {
@@ -67,6 +67,7 @@ tuple<int, int, double> getNearestCluster (const vector<double>& obj, Cluster cl
         vector<double> p = clusters[i].getCenter();
 
         double t = distance(obj, p, metric);
+        //cout << "t = " << t << endl;
         if (t<=dmin) {
             second_cmin = cmin;
             second_dmin = dmin;

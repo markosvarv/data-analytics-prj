@@ -8,6 +8,7 @@
 #define UNKNOWN_METRIC 0
 
 #define K_DEFAULT 4
+#define CUBE_K_DEFAULT 4
 #define L_DEFAULT 5
 #define W_VALUE 2
 #define C_VALUE 1
