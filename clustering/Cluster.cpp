@@ -20,14 +20,16 @@ bool Cluster::addObjToCluster (int obj) {
 }
 
 void Cluster::updateCenter (const vector<dVector*>& dataVector) {
+    if (vectors.empty()) return;
+
     int size = dataVector[0]->getVector().size();
     vector<double> new_center(size, 0.0);
-
 
     for (auto object : vectors) {
         vector<double> vec = dataVector[object]->getVector();
         addVectors(new_center, vec);
     }
+
 
     for (int i=0; i<size; i++) {
         new_center[i]/=vectors.size();
@@ -59,6 +61,30 @@ void Cluster::addVectors (vector<double>& a, const vector<double>& b) {
     for (unsigned int i=0; i<a.size(); i++) {
         a[i]+=b[i];
     }
+}
+
+double Cluster::silhouette_sum (vector<dVector*>& dataVector, Cluster clusters[], int cluster_num, int metric) {
+    double sil_sum = 0;
+
+    //for every vector compute the average distance from its cluster
+    //and the average distance from the second best cluster
+    for (auto vec : vectors) {
+        int second_best_cluster = dataVector[vec]->getSecond_best_cluster();
+
+        //cout << "cluster = " << cluster << "\tsecond_best = " << second_best_cluster << endl;
+
+        double ai=0;
+        //cout << "eimai prin to if\n";
+        if (this->getItemsNum()>1)
+            ai = vectorDistanceSum(dataVector, vec, metric)/(getItemsNum()-1); //-1 because cluster contains the object
+        double bi = clusters[second_best_cluster].vectorDistanceSum(dataVector, vec, metric)/clusters[second_best_cluster].getItemsNum();
+        //cout << "eimai meta to if\n";
+
+        double max;
+        ai > bi ? max=ai : max=bi;
+        sil_sum += (bi-ai)/max;
+    }
+    return sil_sum;
 }
 
 double Cluster::vectorDistanceSum (const vector<dVector*>& dataVector, int vector_num, int metric) {

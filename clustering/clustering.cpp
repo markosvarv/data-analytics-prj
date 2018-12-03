@@ -75,7 +75,7 @@ unsigned int readMetric (const string& metric) {
     }
 }
 
-double silhouette (vector<dVector*> dataVector, Cluster clusters[], int metric) {
+double silhouette (vector<dVector*>& dataVector, Cluster clusters[], int metric) {
     unsigned int obj_num=0;
     double sil_sum = 0;
 
@@ -227,6 +227,10 @@ void init_range_assignment (vector<dVector*>& dataVector, int oldClusters[]) {
         oldClusters[obj_num] = vec->getCluster_num();
         obj_num++;
         vec->set_assigned(false);
+        vec->setCluster_num(-1);
+        vec->setSecond_best_cluster(-1);
+        vec->set_cluster_dist(numeric_limits<double>::max());
+        vec->set_second_cluster_dist(numeric_limits<double>::max());
     }
 }
 
@@ -255,8 +259,8 @@ bool assign_all_vectors(vector<dVector*> dataVector, Cluster clusters[], int met
             //if cluster has changed erase vector from previous cluster and add it to the new cluster
             //cout << "CHANGE!\n";
             change=true;
-            //if (oldClusters[obj_num]!=-1) clusters[oldClusters[obj_num]].eraseVector(obj_num);
-            if (oldClusters[obj_num]!=-1) clusters[new_cluster_num].eraseVector(obj_num);
+            if (oldClusters[obj_num]!=-1) clusters[oldClusters[obj_num]].eraseVector(obj_num);
+            //if (oldClusters[obj_num]!=-1) clusters[new_cluster_num].eraseVector(obj_num);
 
             clusters[new_cluster_num].addObjToCluster(obj_num);
         }
@@ -338,7 +342,7 @@ bool cube_range_assignment (list<dVector*> cube[], int cubeSize, const vector<hF
     do {
         total_assignments_num = cube_range_queries(cube, cubeSize, hF, clusters, metric, k, range_dist);
         range_dist *= 2;
-        //cout << "TOTAL:: " << total_assignments_num << endl;
+        cout << "TOTAL:: " << total_assignments_num << endl;
     }while (total_assignments_num!=0 || range_dist<=2*min_dist);
 
     //int count = 0;
@@ -360,11 +364,12 @@ void random_init (set<int>& centers, int k, vector<dVector*>& dataVector) {
 //    return change;
 //}
 
-void print_results (const string& out, Cluster clusters[], int clusters_num, long sec, int init, int assignment, int update, int metric) {
+void print_results (const string& out, Cluster clusters[], vector<dVector*>& dataVector, int clusters_num, long sec, int init, int assignment, int update, int metric) {
     cout << "ovalue = " << out << endl;
     ofstream output;
     output.open (out);
-
+    double silhouettes_sum[clusters_num];
+    double total_sil_sum=0;
     if(!output) {
         cerr  << "Cannot open file.\n";
         return;
@@ -381,10 +386,19 @@ void print_results (const string& out, Cluster clusters[], int clusters_num, lon
         vector<double> center = clusters[i].getCenter();
         for (double v : center) output << v << ' ';
         output << "]}\n\n";
+        silhouettes_sum[i] = clusters[i].silhouette_sum(dataVector, clusters, i, metric);
+        cout << "sil_sum " << i << " = " << silhouettes_sum[i]/clusters[i].getItemsNum() << endl;
+        total_sil_sum+=silhouettes_sum[i];
     }
     long minutes = sec / 60;
     cout << "Clustering time: " << minutes << " minutes and " << int(sec%60) << " seconds.\n";
     output << "Clustering time: " << minutes << " minutes and " << int(sec%60) << " seconds.\n";
+
+    //for (int i=0; i<clusters_num; i++) {
+
+    //}
+
+    cout << "ev = " << total_sil_sum/dataVector.size() << endl;
 
     output.close();
 
@@ -458,9 +472,11 @@ void clustering_algorithms (int init, int assignment, int update, int k, int met
         previous_obj = current_obj;
         current_obj = objective_function(dataVector, clusters, metric);
 
-        cout << previous_obj / current_obj << endl;
+        double obj_fraction = previous_obj / current_obj;
 
-        if (previous_obj != 0) change = (previous_obj / current_obj > 1.001);
+        cout << obj_fraction << endl;
+
+        if (previous_obj != 0) change = (obj_fraction > 1.01 || obj_fraction <1);
         else change = true;
 
         //update
@@ -488,10 +504,10 @@ void clustering_algorithms (int init, int assignment, int update, int k, int met
 
     //evaluation
     cout << "eimai prin tin silouet\n";
-    print_results(out, clusters, k, sec, init, assignment, update, metric);
+    print_results(out, clusters, dataVector, k, sec, init, assignment, update, metric);
 
     double ev = silhouette(dataVector, clusters, metric);
-    cout << "ev = " << ev << endl;
+    cout << "ev swsto = " << ev << endl;
 }
 
 
@@ -558,10 +574,10 @@ int main(int argc, char *argv[]) {
     vector<dVector*> dataVector{ std::make_move_iterator(std::begin(vectorsList)),
                       std::make_move_iterator(std::end(vectorsList)) };
 
-    clustering_algorithms(0, 0, 0, k, metric, dataVector, ovalue);
+    //clustering_algorithms(0, 0, 0, k, metric, dataVector, ovalue);
    //clustering_algorithms(1, 0, 0, k, metric, dataVector, ovalue);
     //clustering_algorithms(0, 1, 0, k, metric, dataVector, ovalue);
-    //clustering_algorithms(0, 2, 0, k, metric, dataVector);
+    clustering_algorithms(0, 2, 0, k, metric, dataVector, ovalue);
 //    clustering_algorithms(1, 1, 0, k, metric, dataVector);
 //    clustering_algorithms(1, 2, 0, k, metric, dataVector);
 //    clustering_algorithms(0, 0, 1, k, metric, dataVector);
