@@ -185,6 +185,17 @@ bool kmeans_assignment (vector<dVector*>& dataVector, Cluster clusters[], int me
     return change;
 }
 
+double objective_function (vector<dVector*>& dataVector, Cluster clusters[], int metric) {
+    double obj_value=0;
+    for (auto vec : dataVector) {
+        vector<double> center = clusters[vec->getCluster_num()].getCenter();
+        vector<double> current_vec = vec->getVector();
+        double dist=distance(center, current_vec, metric);
+        obj_value+=dist*dist;
+    }
+    return obj_value;
+}
+
 double min_distance_between_centers (Cluster clusters[], int k, int metric) {
     double dmin = numeric_limits<double>::max();
     for (int i=0; i<k; i++) {
@@ -222,10 +233,12 @@ void init_range_assignment (vector<dVector*>& dataVector, int oldClusters[]) {
 bool assign_all_vectors(vector<dVector*> dataVector, Cluster clusters[], int metric, int k, const int oldClusters[]) {
     int obj_num=0;
     bool change=false;
+    int count=0;
     for (auto vec : dataVector) {
         //assign all unassigned vectors
         if (!vec->is_assigned()) {
-            cout << "mphka sto if\n";
+            //cout << "mphka sto if\n";
+            count++;
             set_unassigned_vector(vec, clusters, metric, k);
         }
 
@@ -240,14 +253,16 @@ bool assign_all_vectors(vector<dVector*> dataVector, Cluster clusters[], int met
 
         if (oldClusters[obj_num]!=new_cluster_num) {
             //if cluster has changed erase vector from previous cluster and add it to the new cluster
-            cout << "CHANGE!\n";
+            //cout << "CHANGE!\n";
             change=true;
+            //if (oldClusters[obj_num]!=-1) clusters[oldClusters[obj_num]].eraseVector(obj_num);
             if (oldClusters[obj_num]!=-1) clusters[new_cluster_num].eraseVector(obj_num);
+
             clusters[new_cluster_num].addObjToCluster(obj_num);
         }
         obj_num++;
     }
-    //cout << "count = " << count << endl;
+    cout << "count = " << count << endl;
     return change;
 };
 
@@ -258,7 +273,7 @@ int lsh_range_search (unordered_map<string, list<dVector *>> umap[], const vecto
         vector<double> qValue = clusters[i].getCenter();
 
         int assignments_num = rangeSearch(qValue, i, umap, hF, K_DEFAULT, L_DEFAULT, range_dist, metric);
-        cout << assignments_num << endl;
+        //cout << assignments_num << endl;
         if (assignments_num == -1) {
             cout << "ERROR in assignment\n";
             return false;
@@ -277,7 +292,7 @@ bool lsh_range_assignment (unordered_map<string, list<dVector *>> umap[], const 
     double min_dist = min_distance_between_centers(clusters, k, metric);
     double range_dist = min_dist/2;
 
-    cout << "range_dist = " << range_dist << endl;
+    //cout << "range_dist = " << range_dist << endl;
 
     long total_assignments_num;
     do {
@@ -296,8 +311,8 @@ int cube_range_queries (list<dVector*> cube[], int cubeSize, const vector<hFunct
         //for every center make range queries
         vector<double> qValue = clusters[i].getCenter();
 
-        int assignments_num = cube_range_search(qValue, i, cube, cubeSize, hF, K_DEFAULT, range_dist, 3, metric, M_DEFAULT);
-        cout << assignments_num << endl;
+        int assignments_num = cube_range_search(qValue, i, cube, cubeSize, hF, K_DEFAULT, range_dist, P_DEFAULT, metric, M_DEFAULT);
+        //cout << assignments_num << endl;
         if (assignments_num == -1) {
             cout << "ERROR in assignment\n";
             return false;
@@ -317,17 +332,166 @@ bool cube_range_assignment (list<dVector*> cube[], int cubeSize, const vector<hF
     double min_dist = min_distance_between_centers(clusters, k, metric);
     double range_dist = min_dist/2;
 
-    cout << "range_dist = " << range_dist << endl;
+    //cout << "range_dist = " << range_dist << endl;
 
     long total_assignments_num;
     do {
         total_assignments_num = cube_range_queries(cube, cubeSize, hF, clusters, metric, k, range_dist);
         range_dist *= 2;
-        cout << "TOTAL:: " << total_assignments_num << endl;
+        //cout << "TOTAL:: " << total_assignments_num << endl;
     }while (total_assignments_num!=0 || range_dist<=2*min_dist);
 
     //int count = 0;
     return assign_all_vectors(dataVector, clusters, metric, k, oldClusters);
+}
+
+void random_init (set<int>& centers, int k, vector<dVector*>& dataVector) {
+    while ((int)centers.size() < k) {
+        long num = rand() % dataVector.size();
+        centers.insert(num);
+    }
+}
+
+//bool assignment_alg (int assignment, int k, int metric, vector<dVector*>& dataVector, Cluster clusters[]) {
+//    cout << "mphka ston assignment_alg\n";
+//    bool change=false;
+//
+//    //cout << change << endl;
+//    return change;
+//}
+
+void print_results (const string& out, Cluster clusters[], int clusters_num, long sec, int init, int assignment, int update, int metric) {
+    cout << "ovalue = " << out << endl;
+    ofstream output;
+    output.open (out);
+
+    if(!output) {
+        cerr  << "Cannot open file.\n";
+        return;
+    }
+
+    output << "Algorithm: I" << init << "A" << assignment << "U" << update << "\nMetric: ";
+    if (metric==EUCLIDEAN) output << "Euclidean\n";
+    else if (metric==COSINE) output << "Cosine\n";
+    else return;
+
+
+    for (int i=0; i<clusters_num; i++) {
+        output << "CLUSTER-" << i+1 << "{\nsize: " << clusters[i].getItemsNum() << "\ncentroid: [ ";
+        vector<double> center = clusters[i].getCenter();
+        for (double v : center) output << v << ' ';
+        output << "]}\n\n";
+    }
+    long minutes = sec / 60;
+    cout << "Clustering time: " << minutes << " minutes and " << int(sec%60) << " seconds.\n";
+    output << "Clustering time: " << minutes << " minutes and " << int(sec%60) << " seconds.\n";
+
+    output.close();
+
+}
+
+
+void clustering_algorithms (int init, int assignment, int update, int k, int metric, vector<dVector*>& dataVector, const string& out) {
+    auto begin = chrono::high_resolution_clock::now();
+
+
+    Cluster clusters[k];
+    set<int> centers;
+
+    //initializing
+    switch (init) {
+        case 0:
+            random_init(centers, k, dataVector);
+            break;
+        case 1:
+            kmeanspp_init(centers, dataVector, metric, k);
+            break;
+        default:
+            cerr << "Unknown init command\n";
+            return;
+    }
+    int cluster_num = 0;
+    for (auto c : centers) {
+        //cout << "center = " << c << endl;
+        clusters[cluster_num].setCenter(dataVector[c]->getVector());
+        cluster_num++;
+    }
+
+    //init lsh
+    unordered_map<string, list<dVector *>> umap[L_DEFAULT];
+    vector<hFunction> hF[L_DEFAULT];
+    default_random_engine generator;
+    for (int i = 0; i < L_DEFAULT; i++) hF[i] = hFunction::init_hFunctions(VECTOR_SIZE, K_DEFAULT, generator);
+
+    if (!add_toHashTables(dataVector, K_DEFAULT, hF, umap, L_DEFAULT, metric)) {
+        cerr << "ERROR in add to hashtables\n";
+        return;
+    }
+
+    //init cube
+    int kvalue = CUBE_K_DEFAULT;
+    //default_random_engine generator;
+    if (kvalue <= 0) kvalue = (int) round(log10(dataVector.size()));
+    int arraylen = int(pow(2, kvalue));
+
+    list<dVector *> cube[arraylen];
+    vector<hFunction> hF_cube;
+    hF_cube = hFunction::init_hFunctions(203, kvalue, generator);
+
+    add_toCube(dataVector, kvalue, hF_cube, cube, metric);
+
+    bool change;
+
+    double current_obj = 0, previous_obj;
+
+    do {
+
+
+        //cout << "eimai prin to assign\n";
+        if (assignment == 0) change = kmeans_assignment(dataVector, clusters, metric, k);
+        else if (assignment == 1) change = lsh_range_assignment(umap, hF, generator, dataVector, clusters, metric, k);
+        else if (assignment == 2)
+            change = cube_range_assignment(cube, arraylen, hF_cube, generator, dataVector, clusters, metric, k);
+
+
+        //cout << "eimai meta to assign\n";
+        previous_obj = current_obj;
+        current_obj = objective_function(dataVector, clusters, metric);
+
+        cout << previous_obj / current_obj << endl;
+
+        if (previous_obj != 0) change = (previous_obj / current_obj > 1.001);
+        else change = true;
+
+        //update
+        //update only if has been a change in clusters
+        if (change) {
+            for (int i = 0; i < k; i++) {
+                switch (update) {
+                    case 0:
+                        clusters[i].updateCenter(dataVector);
+                        break;
+                    case 1:
+                        clusters[i].updatePAM_Lloyds(dataVector, metric);
+                        break;
+                    default:
+                        cerr << "Unknown init command\n";
+                        return;
+                }
+            }
+        }
+    } while (change);
+
+    auto end = chrono::high_resolution_clock::now();
+    auto dur = end - begin;
+    long sec = (chrono::duration_cast<std::chrono::seconds>(dur).count());
+
+    //evaluation
+    cout << "eimai prin tin silouet\n";
+    print_results(out, clusters, k, sec, init, assignment, update, metric);
+
+    double ev = silhouette(dataVector, clusters, metric);
+    cout << "ev = " << ev << endl;
 }
 
 
@@ -394,75 +558,18 @@ int main(int argc, char *argv[]) {
     vector<dVector*> dataVector{ std::make_move_iterator(std::begin(vectorsList)),
                       std::make_move_iterator(std::end(vectorsList)) };
 
-    //initializing
-    Cluster clusters[k];
-    set<int> centers;
-
-
-    while (centers.size() < k) {
-        long num = rand() % dataVector.size();
-        centers.insert(num);
-    }
-
-    //kmeanspp_init(centers, dataVector, metric, k);
-
-
-    int cluster_num=0;
-    for(auto c : centers) {
-        cout << "center = " << c << endl;
-        clusters[cluster_num].setCenter(dataVector[c]->getVector());
-        cluster_num++;
-    }
-
-    //init lsh
-    unordered_map<string, list<dVector *>> umap[L_DEFAULT];
-    vector<hFunction> hF[L_DEFAULT];
-    default_random_engine generator;
-    for (int i = 0; i < L_DEFAULT; i++) hF[i] = hFunction::init_hFunctions(VECTOR_SIZE, K_DEFAULT, generator);
-
-    if (!add_toHashTables (dataVector, K_DEFAULT, hF, umap, L_DEFAULT, metric)){
-        cerr << "ERROR in add to hashtables\n";
-        return 1;
-    }
-
-    //init cube
-//    int kvalue=CUBE_K_DEFAULT;
-//    default_random_engine generator;
-//    if (kvalue<=0) kvalue=(int)round(log10(dataVector.size()));
-//    int arraylen = int(pow(2, kvalue));
-//
-//    list<dVector*> cube[arraylen];
-//    vector<hFunction> hF;
-//    hF = hFunction::init_hFunctions(203, kvalue, generator);
-//
-//    add_toCube (dataVector, kvalue, hF, cube, metric);
-
-    bool change;
-    do {
-        //assignment
-        change = lsh_range_assignment(umap, hF, generator, dataVector, clusters, metric, k);
-
-        //change = cube_range_assignment(cube, arraylen, hF, generator, dataVector, clusters, metric, k);
-
-
-        //change = kmeans_assignment(dataVector, clusters, metric, k);
-        cout << change << endl;
-
-        //update
-        //update only if has been a change in clusters
-        if (change) {
-            for (unsigned int i = 0; i < k; i++) {
-                clusters[i].updateCenter(dataVector);
-                //clusters[i].updatePAM_Lloyds(dataVector, metric);
-            }
-        }
-    }while(change);
-
-    //evaluation
-    cout << "eimai prin tin silouet\n";
-    double ev = silhouette(dataVector, clusters, metric);
-    cout << "ev = " << ev << endl;
-
+    clustering_algorithms(0, 0, 0, k, metric, dataVector, ovalue);
+   //clustering_algorithms(1, 0, 0, k, metric, dataVector, ovalue);
+    //clustering_algorithms(0, 1, 0, k, metric, dataVector, ovalue);
+    //clustering_algorithms(0, 2, 0, k, metric, dataVector);
+//    clustering_algorithms(1, 1, 0, k, metric, dataVector);
+//    clustering_algorithms(1, 2, 0, k, metric, dataVector);
+//    clustering_algorithms(0, 0, 1, k, metric, dataVector);
+//    clustering_algorithms(1, 0, 1, k, metric, dataVector);
+//    clustering_algorithms(1, 1, 1, k, metric, dataVector);
+//    clustering_algorithms(0, 1, 1, k, metric, dataVector);
+//    clustering_algorithms(0, 2, 1, k, metric, dataVector);
+//    clustering_algorithms(1, 2, 1, k, metric, dataVector);
 
     for (auto i = dataVector.begin(); i != dataVector.end(); i++) delete (*i);
 }
