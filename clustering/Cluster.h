@@ -31,6 +31,10 @@ public:
         return vectors.size();
     }
 
+    set<int> getVectors (void);
+
+    double silhouette_sum (vector<dVector*>& dataVector, Cluster clusters[], int cluster_num, int metric);
+
     double vectorDistanceSum (const vector<dVector*>& dataVector, int vector_num, int metric);
 
     void updatePAM_Lloyds(const vector<dVector*>& dataVector, int metric);
