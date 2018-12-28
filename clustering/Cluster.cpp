@@ -110,3 +110,7 @@ double Cluster::vectorDistanceSum (const vector<dVector*>& dataVector, int vecto
 void Cluster::eraseVector (int vector_num) {
     vectors.erase(vector_num);
 }
+
+set<int> Cluster::getVectors () {
+    return vectors;
+}
