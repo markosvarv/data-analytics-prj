@@ -8,6 +8,8 @@
 #include <random>
 #include <string>
 
+#include "recomendation_helping.h"
+
 using namespace std;
 
 int main(int argc, char** argv) {
@@ -48,4 +50,7 @@ int main(int argc, char** argv) {
         cout << "Arguments cannot be empty\n";
         return -1;
     }
+    list<dVector*> vectorsList;
+    //readTweets(dvalue);
+    readVader_dict("data/vader_lexicon.csv");
 }

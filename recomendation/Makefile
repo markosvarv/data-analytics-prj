@@ -1,6 +1,6 @@
-SOURCE    = recomendation.cpp
-OBJS      = recomendation.o
-HEADER    =
+SOURCE    = recomendation.cpp recomendation_helping.cpp dVector.cpp
+OBJS      = recomendation.o recomendation_helping.o dVector.o
+HEADER    = recomendation_helping.h dVector.h
 CC        = g++
 FLAGS     = -g -c -Wall -std=c++0x
 # -g option enables debugging mode
@@ -11,6 +11,10 @@ all: $(OBJS)
 
 recomendation.o: recomendation.cpp
 	$(CC) $(FLAGS) recomendation.cpp
+recomendation_helping.o: recomendation_helping.cpp
+	$(CC) $(FLAGS) recomendation_helping.cpp
+dVector.o: dVector.cpp
+	$(CC) $(FLAGS) dVector.cpp
 
 # create/compile the individual files >>separately<<
 
