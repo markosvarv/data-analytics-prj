@@ -1,11 +1,7 @@
-//
-// Created by mark on 19/11/2018.
-//
-
 #include <iostream>
 #include <vector>
-#ifndef INC_1_DVECTOR_H
-#define INC_1_DVECTOR_H
+#ifndef RECOMENDATION_DVECTOR_H
+#define RECOMENDATION_DVECTOR_H
 
 
 class dVector {
@@ -72,5 +68,4 @@ public:
     static dVector* readVector (std::string str, int given_id);
 };
 
-#endif //INC_1_DVECTOR_H
-
+#endif //RECOMENDATION_DVECTOR_H

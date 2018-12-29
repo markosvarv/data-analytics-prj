@@ -5,8 +5,8 @@
 #include <assert.h>
 #include "dVector.h"
 
-#ifndef INC_2_CLUSTER_CLASS_H
-#define INC_2_CLUSTER_CLASS_H
+#ifndef RECOMENDATION_CLUSTER_H
+#define RECOMENDATION_CLUSTER_H
 
 using namespace std;
 
@@ -39,5 +39,6 @@ public:
 
     void updatePAM_Lloyds(const vector<dVector*>& dataVector, int metric);
 
-    };
-#endif //INC_2_CLUSTER_CLASS_H
+};
+
+#endif //RECOMENDATION_CLUSTER_H

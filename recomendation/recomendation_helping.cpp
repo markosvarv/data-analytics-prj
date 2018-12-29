@@ -10,6 +10,7 @@
 #include <fstream>
 #include <algorithm>
 #include <unordered_map>
+#include <map>
 
 #include "Cluster.h"
 #include "recomendation_helping.h"
@@ -44,7 +45,6 @@ int readTweets(const string& filename) {
     size_t pos = 0;
     string token;
 
-    //cout << "filename = " << filename;
     ifstream in(filename);
 
     if (!in) {
@@ -52,8 +52,6 @@ int readTweets(const string& filename) {
         return 0;
     }
     string str;
-    //int count = 0;
-
 
     //while
     if (getline(in, str)) {
@@ -78,6 +76,10 @@ int readTweets(const string& filename) {
         if (!str.empty() && str!=" " && str!="\n" && str!="\r") {
             cout << "str = " << str << endl;
         }
+        else {
+            cout << "PROBLEMAA\n";
+            return 0;
+        }
 
     }
 
@@ -85,14 +87,12 @@ int readTweets(const string& filename) {
     return 1;
 }
 
-int readVader_dict(const string& filename) {
+int readVader_dict(map<string, double>& vader_dict, const string& filename) {
     string token;
     size_t pos = 0;
 
     string delimiter = "\t";
 
-
-    //cout << "filename = " << filename;
     ifstream in(filename);
 
     if (!in) {
@@ -102,32 +102,54 @@ int readVader_dict(const string& filename) {
     string str;
     //int count = 0;
 
-
-    //while
     while (getline(in, str)) {
 
         if (str.empty() || str==delimiter) {
             cout << str << " NULLLLLL\n";
-            //return nullptr;
+            return 0;
         }
 
-        while ((pos = str.find(delimiter)) != string::npos) {
+        if ((pos = str.find(delimiter)) != string::npos) {
             token = str.substr(0, pos);
 
             if (token.empty()) {
                 cout << "EMPTY TOKEN\n";
                 continue;
             }
-            else cout << "token = " << token << endl;
-
             str.erase(0, pos + delimiter.length());
         }
 
         if (!str.empty() && str!=" " && str!="\n" && str!="\r") {
-            cout << "sent = " << str << endl;
+            double sent = stod(str);
+            vader_dict[token] = sent;
+        }
+        else {
+            cout << "PROBLEMAA\n";
+            return 0;
         }
 
     }
+    in.close();
+    return 1;
+}
+
+int readCoins(vector<string>& coins, const string& filename) {
+    string token;
+    ifstream in(filename);
+
+    if (!in) {
+        cout << "Cannot open input file.\n";
+        return 0;
+    }
+    string str;
+    while (getline(in, str)) {
+        if (str.empty()) {
+            cout << str << " NULLLLLL\n";
+            return 0;
+        }
+        coins.emplace_back(str);
+    }
+
     in.close();
     return 1;
 }

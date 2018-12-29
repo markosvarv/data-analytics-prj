@@ -7,6 +7,7 @@
 #include <set>
 #include <random>
 #include <string>
+#include <map>
 
 #include "recomendation_helping.h"
 
@@ -52,5 +53,17 @@ int main(int argc, char** argv) {
     }
     list<dVector*> vectorsList;
     //readTweets(dvalue);
-    readVader_dict("data/vader_lexicon.csv");
+    map<string, double> vader_dict;
+    if (readVader_dict(vader_dict, "data/vader_lexicon.csv")==0){
+        cerr << "Error while reading vader lexicon\t";
+        return -1;
+    }
+    vector<string> coins;
+    if (readCoins(coins, "data/coins_queries.csv")==0) {
+        cerr << "Error while reading from coin queries\n";
+        return -1;
+    }
+//    map<string, double>::iterator it;
+//    if((it = vader_dict.find("swearing")) != vader_dict.end())
+//        cout << it->first<<" =>"<< it->second << '\n';
 }

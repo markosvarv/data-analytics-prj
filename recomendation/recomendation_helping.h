@@ -20,7 +20,8 @@
 
 int readInput(list<dVector*>& dataList, const string& filename);
 int readTweets(const string& filename);
-int readVader_dict(const string& filename);
+int readVader_dict(map<string, double>& vader_dict, const string& filename);
+int readCoins(vector<string>& coins, const string& filename);
 
 
 

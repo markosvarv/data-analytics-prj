@@ -1,6 +1,8 @@
 #include "Cluster.h"
 #include "clustering_helping.h"
 
+using namespace std;
+
 void Cluster::setCenter (const vector<double>& new_center) {
     center = new_center;
     //center_num = new_center_num;
