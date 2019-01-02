@@ -8,8 +8,10 @@
 #include <random>
 #include <string>
 #include <map>
-
+#include "Tweet.h"
+#include "clustering.h"
 #include "recomendation_helping.h"
+#include "parameter_values.h"
 
 using namespace std;
 
@@ -52,17 +54,103 @@ int main(int argc, char** argv) {
         return -1;
     }
     list<dVector*> vectorsList;
-    //readTweets(dvalue);
-    map<string, double> vader_dict;
-    if (readVader_dict(vader_dict, "data/vader_lexicon.csv")==0){
-        cerr << "Error while reading vader lexicon\t";
+    unordered_map <unsigned long, list<Tweet*>> user_tweets;
+    if (!readTweets(user_tweets, dvalue)) {
+        cerr << "Error while reading tweets\n";
         return -1;
     }
+//    for (Tweet* t : user_tweets[45479]) {
+//        cout << t->getTweetid() << endl;
+//    }
+    map<string, double> vader_dict;
+    if (!readVader_dict(vader_dict, "data/vader_lexicon.csv")){
+        cerr << "Error while reading vader lexicon\n";
+        return -1;
+    }
+
+    unordered_map<int, Tweet*> tweets;
+
+    unsigned long users_count = 0;
+    for (auto& it : user_tweets) {
+        users_count++;
+        for (Tweet* tweet : it.second) {
+            tweet->calcSent(vader_dict);
+            tweets[tweet->getTweetid()]=tweet;
+        }
+    }
+    cout << "user_count = " << users_count << endl;
+
     vector<string> coins;
-    if (readCoins(coins, "data/coins_queries.csv")==0) {
+    if (!readCoins(coins, "data/coins_queries.csv")) {
         cerr << "Error while reading from coin queries\n";
         return -1;
     }
+    unsigned long coins_count = coins.size();
+    double uVectors[users_count][coins_count];
+
+//    unsigned long user_num=0;
+//    for (auto& it : user_tweets) { //for every user
+//        int coin_num=0;
+//        for (string& coin : coins) { //for every coin
+//            double user_coin_sent_sum=0;
+//            for (Tweet* tweet : it.second) {
+//                if (tweet->containsCrypto(coin)) {
+//                    user_coin_sent_sum+=tweet->getSentiment();
+//                }
+//            }
+//            uVectors[user_num][coin_num] = user_coin_sent_sum;
+//            coin_num++;
+//        }
+//        user_num++;
+//    }
+//
+//    for (unsigned long i=0; i<users_count; i++) {
+//        for (unsigned long j=0; j<coins_count; j++) {
+//            cout << uVectors[i][j] << " ";
+//        }
+//        cout << endl;
+//    }
+//    cout << endl;
+
+    list<dVector*> dataList;
+    if (!readVectors(dataList, "data/twitter_dataset_small_v2.csv")) {
+        cerr << "Error while reading input file\n";
+        return -1;
+    }
+    //copy the contents of the list to a new vector for easier management
+    vector<dVector*> dataVector{ std::make_move_iterator(std::begin(dataList)),
+                                 std::make_move_iterator(std::end(dataList)) };
+
+    Cluster clusters[K_VALUE];
+    clustering_algorithms (K_VALUE, COSINE, dataVector, clusters);
+
+    double cVectors[K_VALUE][coins_count];
+
+    //for every cluster
+    for (unsigned long cluster_num=0; cluster_num<K_VALUE; cluster_num++) {
+        int coin_num=0;
+        set<int> ids = clusters[cluster_num].getVectors();
+        for (string& coin : coins) { //for every coin
+            double cluster_coin_sent_sum=0;
+            for (int tweet_id : ids) {
+                if (tweets[tweet_id]) {
+                    if (tweets[tweet_id]->containsCrypto(coin)) cluster_coin_sent_sum+=tweets[tweet_id]->getSentiment();
+                }
+                else cout << "PROBLEMA tweet_id = " << tweet_id << endl;
+            }
+            cVectors[cluster_num][coin_num] = cluster_coin_sent_sum;
+            coin_num++;
+        }
+    }
+    for (unsigned long i=0; i<K_VALUE; i++) {
+        for (unsigned long j=0; j<coins_count; j++) {
+            //cout << cVectors[i][j] << " ";
+        }
+        //cout << endl;
+    }
+    cout << endl;
+
+
 //    map<string, double>::iterator it;
 //    if((it = vader_dict.find("swearing")) != vader_dict.end())
 //        cout << it->first<<" =>"<< it->second << '\n';

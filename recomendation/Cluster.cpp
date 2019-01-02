@@ -1,5 +1,5 @@
 #include "Cluster.h"
-#include "clustering_helping.h"
+#include "recomendation_helping.h"
 
 using namespace std;
 
@@ -113,6 +113,6 @@ void Cluster::eraseVector (int vector_num) {
     vectors.erase(vector_num);
 }
 
-set<int> Cluster::getVectors () {
+set<int>& Cluster::getVectors () {
     return vectors;
 }

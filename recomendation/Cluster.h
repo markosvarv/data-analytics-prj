@@ -1,3 +1,7 @@
+#ifndef RECOMENDATION_CLUSTER_H
+#define RECOMENDATION_CLUSTER_H
+
+
 #include <iostream>
 #include <vector>
 #include <set>
@@ -5,8 +9,6 @@
 #include <assert.h>
 #include "dVector.h"
 
-#ifndef RECOMENDATION_CLUSTER_H
-#define RECOMENDATION_CLUSTER_H
 
 using namespace std;
 
@@ -31,7 +33,7 @@ public:
         return vectors.size();
     }
 
-    set<int> getVectors (void);
+    set<int>& getVectors (void);
 
     double silhouette_sum (vector<dVector*>& dataVector, Cluster clusters[], int cluster_num, int metric);
 
