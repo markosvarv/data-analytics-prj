@@ -67,11 +67,10 @@ int readVectors(list<dVector*>& dataList, const string& filename) {
         return 0;
     }
     string str;
-    int count = 0;
 
     while (getline(in, str)) {
         dVector *pValue;
-        pValue = dVector::readVector(str, count++);
+        pValue = dVector::readVector(str);
         dataList.push_back(pValue);
         //if (pValue->getVector().size()!=VECTOR_SIZE) exit(1);
     }

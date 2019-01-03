@@ -7,6 +7,7 @@
 #include "recomendation_helping.h"
 
 
+
 void clustering_algorithms (int k, int metric, vector<dVector*>& dataVector, Cluster clusters[]) {
     auto begin = chrono::high_resolution_clock::now();
 
@@ -56,8 +57,33 @@ void clustering_algorithms (int k, int metric, vector<dVector*>& dataVector, Clu
     cout << "eimai prin tin silouet\n";
     //print_results(out, clusters, dataVector, k, sec, init, assignment, update, metric, complete);
 
-    //double ev = silhouette(dataVector, clusters, metric);
-    //cout << "ev swsto = " << ev << endl;
+    double ev = silhouette(dataVector, clusters, metric);
+    cout << "ev swsto = " << ev << endl;
+}
+
+double silhouette (vector<dVector*>& dataVector, Cluster clusters[], int metric) {
+    double sil_sum = 0;
+
+    //for every vector compute the average distance from its cluster
+    //and the average distance from the second best cluster
+    for (dVector* vector : dataVector) {
+        int cluster = vector->getCluster_num();
+        int second_best_cluster = vector->getSecond_best_cluster();
+
+        //cout << "cluster = " << cluster << "\tsecond_best = " << second_best_cluster << endl;
+
+        double ai=0;
+        //cout << "eimai prin to if\n";
+        if (clusters[cluster].getItemsNum()>1)
+            ai = clusters[cluster].vectorDistanceSum(vector, metric)/(clusters[cluster].getItemsNum()-1); //-1 because cluster contains the object
+        double bi = clusters[second_best_cluster].vectorDistanceSum(vector, metric)/clusters[second_best_cluster].getItemsNum();
+        //cout << "eimai meta to if\n";
+
+        double max;
+        ai > bi ? max=ai : max=bi;
+        sil_sum += (bi-ai)/max;
+    }
+    return sil_sum/dataVector.size();
 }
 
 void random_init (set<int>& centers, int k, vector<dVector*>& dataVector) {
@@ -138,7 +164,7 @@ bool kmeans_assignment (vector<dVector*>& dataVector, Cluster clusters[], int me
     bool change = false;
     //int obj_num=0;
 
-    for (auto vec : dataVector) {
+    for (dVector* vec : dataVector) {
 
         int cluster_num=vec->getCluster_num();
 
@@ -151,8 +177,8 @@ bool kmeans_assignment (vector<dVector*>& dataVector, Cluster clusters[], int me
         if (cluster_num!=new_cluster_num) {
             //if cluster has changed erase vector from previous cluster and add it to the new cluster
             change=true;
-            if (cluster_num!=-1) clusters[cluster_num].eraseVector(vec->getID());
-            clusters[new_cluster_num].addObjToCluster(vec->getID());
+            if (cluster_num!=-1) clusters[cluster_num].eraseVector(vec);
+            clusters[new_cluster_num].addObjToCluster(vec);
             vec->setCluster_num(new_cluster_num);
         }
         vec->setSecond_best_cluster(second_best);

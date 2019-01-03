@@ -12,7 +12,7 @@ vector<double>& Cluster::getCenter() {
     return center;
 }
 
-bool Cluster::addObjToCluster (int obj) {
+bool Cluster::addObjToCluster (dVector* obj) {
     if (vectors.find(obj)==vectors.end()) {
         //cout << "ENDDDDD\n";
         vectors.insert(obj);
@@ -27,8 +27,8 @@ void Cluster::updateCenter (const vector<dVector*>& dataVector) {
     int size = dataVector[0]->getVector().size();
     vector<double> new_center(size, 0.0);
 
-    for (auto object : vectors) {
-        vector<double> vec = dataVector[object]->getVector();
+    for (dVector* object : vectors) {
+        vector<double> vec = object->getVector();
         addVectors(new_center, vec);
     }
 
@@ -46,12 +46,12 @@ void Cluster::updatePAM_Lloyds(const vector<dVector*>& dataVector, int metric) {
     int t = (int)dataVector.size();
 
     cout << vectors.size() << endl;
-    for (int vector_num : vectors) {
+    for (dVector* vec : vectors) {
         //for every vector in cluster compute the min total distance from the other vectors
-        double d = vectorDistanceSum(dataVector, vector_num, metric);
+        double d = vectorDistanceSum(vec, metric);
         if (d<dmin) {
             dmin = d;
-            t = vector_num;
+            t = vec->getID();
         }
     }
     center = dataVector[t]->getVector();  //the new center is the vector with the min distance
@@ -70,16 +70,16 @@ double Cluster::silhouette_sum (vector<dVector*>& dataVector, Cluster clusters[]
 
     //for every vector compute the average distance from its cluster
     //and the average distance from the second best cluster
-    for (auto vec : vectors) {
-        int second_best_cluster = dataVector[vec]->getSecond_best_cluster();
+    for (dVector* vec : vectors) {
+        int second_best_cluster = vec->getSecond_best_cluster();
 
         //cout << "cluster = " << cluster << "\tsecond_best = " << second_best_cluster << endl;
 
         double ai=0;
         //cout << "eimai prin to if\n";
         if (this->getItemsNum()>1)
-            ai = vectorDistanceSum(dataVector, vec, metric)/(getItemsNum()-1); //-1 because cluster contains the object
-        double bi = clusters[second_best_cluster].vectorDistanceSum(dataVector, vec, metric)/clusters[second_best_cluster].getItemsNum();
+            ai = vectorDistanceSum(vec, metric)/(getItemsNum()-1); //-1 because cluster contains the object
+        double bi = clusters[second_best_cluster].vectorDistanceSum(vec, metric)/clusters[second_best_cluster].getItemsNum();
         //cout << "eimai meta to if\n";
 
         double max;
@@ -89,19 +89,19 @@ double Cluster::silhouette_sum (vector<dVector*>& dataVector, Cluster clusters[]
     return sil_sum;
 }
 
-double Cluster::vectorDistanceSum (const vector<dVector*>& dataVector, int vector_num, int metric) {
-    vector<double> given_vector = dataVector[vector_num]->getVector();
+double Cluster::vectorDistanceSum (dVector* vec, int metric) {
+    vector<double> given_vector = vec->getVector();
     double dsum = 0;
     //bool same_vector = false;
-    for (int object : vectors) {
+    for (dVector* object : vectors) {
         //cout << object << endl;
-        if (object==vector_num) {
+        if (object->getID()==vec->getID()) {
             //cout << "MPHKA STO IF\n";
             //same_vector = true;
             continue;
         }
-        vector<double> vec = dataVector[object]->getVector();
-        dsum += distance(given_vector, vec, metric);
+        vector<double> current_vec = object->getVector();
+        dsum += distance(given_vector, current_vec, metric);
     }
 
     //int size = vectors.size();
@@ -109,10 +109,10 @@ double Cluster::vectorDistanceSum (const vector<dVector*>& dataVector, int vecto
     return dsum;
 }
 
-void Cluster::eraseVector (int vector_num) {
-    vectors.erase(vector_num);
+void Cluster::eraseVector (dVector* vector) {
+    vectors.erase(vector);
 }
 
-set<int>& Cluster::getVectors () {
+set<dVector*>& Cluster::getVectors () {
     return vectors;
 }

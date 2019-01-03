@@ -29,7 +29,7 @@ std::string dVector::getName() const {
 }
 
 
-dVector* dVector::readVector (string str, int given_id) {
+dVector* dVector::readVector (string str) {
     string delimiter = ",";
     vector<double> p;
 
@@ -50,6 +50,8 @@ dVector* dVector::readVector (string str, int given_id) {
     }
 
     string name = token;
+
+    int id = stoi(token);
 
     str.erase(0, pos + delimiter.length());
 
@@ -73,6 +75,6 @@ dVector* dVector::readVector (string str, int given_id) {
         p.push_back(d);
     }
 
-    auto dValue = new dVector(name, p, given_id);
+    auto dValue = new dVector(name, p, id);
     return dValue;
 }

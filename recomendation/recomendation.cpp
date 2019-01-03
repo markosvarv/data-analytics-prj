@@ -86,7 +86,7 @@ int main(int argc, char** argv) {
         return -1;
     }
     unsigned long coins_count = coins.size();
-    double uVectors[users_count][coins_count];
+    //double uVectors[users_count][coins_count];
 
 //    unsigned long user_num=0;
 //    for (auto& it : user_tweets) { //for every user
@@ -129,14 +129,14 @@ int main(int argc, char** argv) {
     //for every cluster
     for (unsigned long cluster_num=0; cluster_num<K_VALUE; cluster_num++) {
         int coin_num=0;
-        set<int> ids = clusters[cluster_num].getVectors();
+        set<dVector*> vectors = clusters[cluster_num].getVectors();
         for (string& coin : coins) { //for every coin
             double cluster_coin_sent_sum=0;
-            for (int tweet_id : ids) {
-                if (tweets[tweet_id]) {
-                    if (tweets[tweet_id]->containsCrypto(coin)) cluster_coin_sent_sum+=tweets[tweet_id]->getSentiment();
+            for (dVector* tweet : vectors) {
+                if (tweets[tweet->getID()]) {
+                    if (tweets[tweet->getID()]->containsCrypto(coin)) cluster_coin_sent_sum+=tweets[tweet->getID()]->getSentiment();
                 }
-                else cout << "PROBLEMA tweet_id = " << tweet_id << endl;
+                else cout << "PROBLEMA tweet_id = " << tweet->getID() << endl;
             }
             cVectors[cluster_num][coin_num] = cluster_coin_sent_sum;
             coin_num++;
@@ -144,9 +144,9 @@ int main(int argc, char** argv) {
     }
     for (unsigned long i=0; i<K_VALUE; i++) {
         for (unsigned long j=0; j<coins_count; j++) {
-            //cout << cVectors[i][j] << " ";
+            cout << cVectors[i][j] << " ";
         }
-        //cout << endl;
+        cout << endl;
     }
     cout << endl;
 

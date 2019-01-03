@@ -14,6 +14,7 @@
 
 void clustering_algorithms (int k, int metric, vector<dVector*>& dataVector, Cluster clusters[]);
 void random_init (set<int>& centers, int k, vector<dVector*>& dataVector);
+double silhouette (vector<dVector*>& dataVector, Cluster clusters[], int metric);
 
 double di (int i, set<int>& centers, vector<dVector*>& dataVector, int metric);
 double pr (int r, set<int>& centers, vector<dVector*>& dataVector, int metric);

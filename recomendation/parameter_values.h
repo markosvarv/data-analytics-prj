@@ -6,5 +6,5 @@
 #define COSINE 2
 #define UNKNOWN_METRIC 0
 
-#define K_VALUE 50
+#define K_VALUE 5
 #endif //RECOMENDATION_PARAMETER_VALUES_H

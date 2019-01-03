@@ -65,7 +65,7 @@ public:
     }
 
     std::vector<double> getVector () const;
-    static dVector* readVector (std::string str, int given_id);
+    static dVector* readVector (std::string str);
 };
 
 #endif //RECOMENDATION_DVECTOR_H
