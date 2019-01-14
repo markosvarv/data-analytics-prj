@@ -33,6 +33,10 @@ public:
         return sentiment;
     }
 
+    vector<string> getWords () {
+        return words;
+    }
+
     int calcSent (map<string, double>& vader_dict);
 
     bool containsCrypto (string crypto) ;

@@ -1,6 +1,6 @@
-SOURCE    = recomendation.cpp recomendation_helping.cpp Tweet.cpp clustering.cpp Cluster.cpp dVector.cpp
-OBJS      = recomendation.o recomendation_helping.o Tweet.o clustering.o Cluster.o dVector.o
-HEADER    = recomendation_helping.h Tweet.h clustering.h Cluster.h dVector.h
+SOURCE    = recommendation.cpp recommendation_helping.cpp Tweet.cpp clustering.cpp Cluster.cpp lsh.cpp hFunction.cpp dVector.cpp
+OBJS      = recommendation.o recommendation_helping.o Tweet.o clustering.o Cluster.o lsh.o hFunction.o dVector.o
+HEADER    = recommendation_helping.h Tweet.h clustering.h Cluster.h lsh.h hFunction.h dVector.h
 CC        = g++
 FLAGS     = -g -c -Wall -std=c++0x
 # -g option enables debugging mode
@@ -9,18 +9,22 @@ FLAGS     = -g -c -Wall -std=c++0x
 all: $(OBJS)
 	$(CC) -g $(OBJS) -o recomendation
 
-recomendation.o: recomendation.cpp
-	$(CC) $(FLAGS) recomendation.cpp
-recomendation_helping.o: recomendation_helping.cpp
-	$(CC) $(FLAGS) recomendation_helping.cpp
-dVector.o: dVector.cpp
-	$(CC) $(FLAGS) dVector.cpp
+recommendation.o: recommendation.cpp
+	$(CC) $(FLAGS) recommendation.cpp
+recommendation_helping.o: recommendation_helping.cpp
+	$(CC) $(FLAGS) recommendation_helping.cpp
 Tweet.o: Tweet.cpp
 	$(CC) $(FLAGS) Tweet.cpp
 clustering.o: clustering.cpp
 	$(CC) $(FLAGS) clustering.cpp
 Cluster.o: Cluster.cpp
 	$(CC) $(FLAGS) Cluster.cpp
+lsh.o: lsh.cpp
+	$(CC) $(FLAGS) lsh.cpp
+hFunction.o: hFunction.cpp
+	$(CC) $(FLAGS) hFunction.cpp
+dVector.o: dVector.cpp
+	$(CC) $(FLAGS) dVector.cpp
 
 # create/compile the individual files >>separately<<
 

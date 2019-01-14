@@ -14,7 +14,6 @@ using namespace std;
 
 class Cluster {
 private:
-    int center_num;
     vector<double> center;
     set<dVector*> vectors;
 public:
@@ -29,7 +28,7 @@ public:
 
     void eraseVector (dVector* vector_num);
 
-    int getItemsNum (void) {
+    unsigned long getItemsNum () {
         return vectors.size();
     }
 
@@ -38,9 +37,6 @@ public:
     double silhouette_sum (vector<dVector*>& dataVector, Cluster clusters[], int cluster_num, int metric);
 
     double vectorDistanceSum (dVector* vec, int metric);
-
-    void updatePAM_Lloyds(const vector<dVector*>& dataVector, int metric);
-
 };
 
 #endif //RECOMENDATION_CLUSTER_H

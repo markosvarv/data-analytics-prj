@@ -1,11 +1,10 @@
 #include "Cluster.h"
-#include "recomendation_helping.h"
+#include "recommendation_helping.h"
 
 using namespace std;
 
 void Cluster::setCenter (const vector<double>& new_center) {
     center = new_center;
-    //center_num = new_center_num;
 }
 
 vector<double>& Cluster::getCenter() {
@@ -24,7 +23,7 @@ bool Cluster::addObjToCluster (dVector* obj) {
 void Cluster::updateCenter (const vector<dVector*>& dataVector) {
     if (vectors.empty()) return;
 
-    int size = dataVector[0]->getVector().size();
+    unsigned long size = dataVector[0]->getVector().size();
     vector<double> new_center(size, 0.0);
 
     for (dVector* object : vectors) {
@@ -33,28 +32,11 @@ void Cluster::updateCenter (const vector<dVector*>& dataVector) {
     }
 
 
-    for (int i=0; i<size; i++) {
+    for (unsigned long i=0; i<size; i++) {
         new_center[i]/=vectors.size();
     }
 
     center = new_center;
-}
-
-void Cluster::updatePAM_Lloyds(const vector<dVector*>& dataVector, int metric) {
-
-    double dmin = numeric_limits<double>::max();
-    int t = (int)dataVector.size();
-
-    cout << vectors.size() << endl;
-    for (dVector* vec : vectors) {
-        //for every vector in cluster compute the min total distance from the other vectors
-        double d = vectorDistanceSum(vec, metric);
-        if (d<dmin) {
-            dmin = d;
-            t = vec->getID();
-        }
-    }
-    center = dataVector[t]->getVector();  //the new center is the vector with the min distance
 }
 
 void Cluster::addVectors (vector<double>& a, const vector<double>& b) {

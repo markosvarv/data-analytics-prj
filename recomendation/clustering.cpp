@@ -4,7 +4,7 @@
 
 #include "clustering.h"
 #include "Cluster.h"
-#include "recomendation_helping.h"
+#include "recommendation_helping.h"
 
 
 

@@ -36,12 +36,20 @@ bool Tweet::containsCrypto (string crypto) {
             cout << "EMPTY TOKEN\n";
             continue;
         }
-        if (find(words.begin(), words.end(), token) != words.end()) return true;
+
+        if (find(words.begin(), words.end(), token) != words.end())  {
+            return true;
+        }
 
         crypto.erase(0, pos + delimiter.length());
     }
 
-    if (!crypto.empty() && crypto!=" " && crypto!="\n" && crypto!="\r") {
+    if ((pos = crypto.find('\r')) != string::npos) {
+        token = crypto.substr(0, pos);
+    }
+    else token = crypto;
+
+    if (!token.empty() && token!=" " && token!="\n" && token!="\r") {
         if (find(words.begin(), words.end(), token) != words.end()) return true;
     }
     return false;
