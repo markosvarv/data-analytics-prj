@@ -13,9 +13,10 @@
 
 using namespace std;
 
-string getHashString (dVector& pValue, int k, std::vector<hFunction>& h, int metric);
+string getHashString (const dVector* pValue, int k, std::vector<hFunction>& h, int metric);
 void add_toHashTable (list<dVector*>& dataList, int k, vector<hFunction> hF[], unordered_map<string, list<dVector*>> umap[], int L, int metric);
-void rangeSearch (set<int>& rNN, dVector& query, unordered_map<string, list<dVector*>> umap[], vector<hFunction> hF[], int k, int L, double R, int metric);
+void rangeSearch (set<dVector*>& rNN, const dVector* query, unordered_map<string, list<dVector*>> umap[], vector<hFunction> hF[], int k, int L, double R, int metric);
+void keep_P_Best (const set<dVector*>& vectors, const vector<double>& given_vec, int k, const dVector* best[], int metric);
 
 
 #endif //RECOMENDATION_LSH_H

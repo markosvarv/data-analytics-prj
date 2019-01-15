@@ -10,8 +10,8 @@
 class hFunction {
 private:
     std::vector<double> v;
-    double t;
-    const int w=W_VALUE;
+    //double t;
+    //const int w=W_VALUE;
 
 public:
     hFunction (unsigned long vector_size, std::default_random_engine& generator);

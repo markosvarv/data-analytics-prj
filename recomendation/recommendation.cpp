@@ -13,6 +13,7 @@
 #include "recommendation_helping.h"
 #include "parameter_values.h"
 #include "lsh.h"
+#include "dVector.h"
 
 using namespace std;
 
@@ -115,7 +116,17 @@ int main(int argc, char** argv) {
         uVectors.push_back(dvec);
     }
 
-//    for (dVector* vec : uVectors) {
+    //normalization
+
+    //dVector* vec = uVectors.front();
+    //vec->normalize();
+
+
+    //for (dVector* vec : uVectors) {
+        //vec->normalize();
+
+
+
 //        vector<double> cur_vec = vec->getVector();
 //        vector<bool> info_el = vec->getKnownElements();
 //        for (double cur : cur_vec) {
@@ -128,19 +139,48 @@ int main(int argc, char** argv) {
 //        cout << "\nhasInfo = " << vec->hasInfo() << endl;
 //        cout << "average = " << vec->getAverage() << endl;
 //        cout << endl;
-//    }
+    //}
 
+
+
+
+    //hashing
     default_random_engine generator;
-
     unordered_map<string, list<dVector *>> umap[L_DEFAULT];
     vector<hFunction> hF[L_DEFAULT];
-
     for (int i = 0; i < L_DEFAULT; i++) {
         hF[i] = hFunction::init_hFunctions(coins.size(), K_DEFAULT, generator);
     }
-
     add_toHashTable (uVectors, K_DEFAULT, hF, umap, L_DEFAULT, COSINE);
 
+
+    //for every user, find the P better similar users
+
+
+    cout << "size = " << uVectors.size() << endl;
+    int counter=0;
+    for (dVector* vec : uVectors) {
+        //cout << "mphka sto uVectors\n";
+        set<dVector*> rNN;
+        vector<double> dvec = vec->getVector();
+        if (!vec->hasInfo()) {
+            cout << "vector has no info. Continue\n";
+            continue;
+        }
+        cout << "eimai prin to range search\n";
+        rangeSearch(rNN, vec, umap, hF, K_DEFAULT, L_DEFAULT, R_DEFAULT, COSINE);
+        cout << "set size = " << rNN.size() << endl;
+        //cout << counter++ << endl;
+        const dVector* PVectors[P_DEFAULT]; //P better similar users
+        keep_P_Best(rNN, dvec, P_DEFAULT, PVectors, COSINE);
+//        vector<double> max_values(dvec);
+//        double sum_simil = sum_similarity(rNN, dvec, COSINE, false);
+//        double sum_simil_abs = sum_similarity(rNN, dvec, COSINE, true);
+//        for (int i=0; i<P_DEFAULT; i++) {
+//            vector<double> current_vec = PVectors[i]->getVector();
+//
+//        }
+    }
 
 
 

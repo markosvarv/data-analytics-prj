@@ -1,7 +1,8 @@
-#include <iostream>
-#include <vector>
 #ifndef RECOMENDATION_DVECTOR_H
 #define RECOMENDATION_DVECTOR_H
+#include <iostream>
+#include <vector>
+#include <set>
 
 
 class dVector {
@@ -11,13 +12,17 @@ private:
     int cluster_num;
     int second_best_cluster;
     int id;
+    double average;
+    bool zeroNormalized;
 
 public:
-    dVector(const std::vector<double> given_p, int given_id);
+    dVector(std::vector<double> given_p, int given_id);
 
     bool hasInfo () const;
 
     void setUnknownElements ();
+
+    void normalize();
 
     double getAverage() const;
 
@@ -25,11 +30,11 @@ public:
     void setCluster_num (int cluster) {
         cluster_num=cluster;
     }
-    int getCluster_num (void) {
+    int getCluster_num () {
         return cluster_num;
     }
 
-    int getID (void) {
+    int getID () {
         return id;
     }
 
@@ -47,9 +52,11 @@ public:
         return known_elements;
     }
 
+
     static dVector* readVector (std::string str);
 };
 
+double sum_similarity (const std::set<dVector*>& rNN, const std::vector<double>& given_vec, int metric, bool absol);
 double euclideanDistance (const std::vector<double>& v1, const std::vector<double> &v2);
 double cosineDistance (const std::vector<double>& v1, const std::vector<double>& v2);
 double magnitude (const std::vector<double>& v);

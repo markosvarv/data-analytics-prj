@@ -7,7 +7,9 @@
 #define UNKNOWN_METRIC 0
 
 #define K_DEFAULT 5
-#define W_VALUE 4
+#define R_DEFAULT 100
+#define P_DEFAULT 20
+//#define W_VALUE 4
 #define C_VALUE 1
 #define L_DEFAULT 5
 #endif //RECOMENDATION_PARAMETER_VALUES_H

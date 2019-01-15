@@ -5,6 +5,7 @@
 #include <limits>
 #include <cmath>
 #include <numeric>
+#include <set>
 #include "dVector.h"
 #include "parameter_values.h"
 
@@ -34,13 +35,21 @@ void dVector::setUnknownElements () {
 
     for (unsigned long cur=0; cur < p.size(); cur++) {
         known_elements.push_back(p[cur]!=numeric_limits<double>::max());
-
     }
-    double average = getAverage();
+    average = getAverage();
     for (unsigned long cur=0; cur<p.size(); cur++) {
         if (!known_elements[cur]) p[cur] = average;
 
     }
+}
+
+void dVector::normalize() {
+    vector<double> normalized_vec(p);
+    for (unsigned long cur=0; cur<p.size(); cur++) {
+        if (!known_elements[cur]) ;
+        else normalized_vec[cur] = p[cur] - average;
+    }
+    cout << endl;
 }
 
 
@@ -75,8 +84,35 @@ double cosineDistance (const vector<double>& v1, const vector<double>& v2) {
     return (1-(inner_product(v1.begin(), v1.end(), v2.begin(), 0.0) / (magnitude(v1) * magnitude(v2))));
 }
 
-double similarity (const vector<double>& v1, const vector<double>& v2) {
-    return ((inner_product(v1.begin(), v1.end(), v2.begin(), 0.0) / (magnitude(v1) * magnitude(v2))));
+
+double similarity (const vector<double>& v1, const vector<double>& v2, int metric) {
+    unsigned long v1_size, v2_size;
+    v1_size=v1.size(); v2_size=v2.size();
+
+    if (v1_size!=v2_size) {
+        cerr << "Error in similarity. Vectors must have the same size" << endl;
+        //cout << "v1 size = " << v1_size << " v2 size = " << v2_size << endl;
+        return -1.0;
+    }
+
+    switch (metric) {
+        case EUCLIDEAN:
+            return 0;
+        case COSINE:
+            return ((inner_product(v1.begin(), v1.end(), v2.begin(), 0.0) / (magnitude(v1) * magnitude(v2))));
+        default:
+            return -1.0;
+    }
+}
+
+double sum_similarity (const set<dVector*>& rNN, const vector<double>& given_vec, int metric, bool absol) {
+    double sum_sim = 0.0;
+    for (dVector* cur_vec : rNN) {
+        vector<double> dvec = cur_vec->getVector();
+        if (absol) sum_sim+=abs(similarity(dvec, given_vec, metric));
+        else sum_sim+=similarity(dvec, given_vec, metric);
+    }
+    return sum_sim;
 }
 
 double distance (const vector<double>& v1, const vector<double>& v2, int metric) {
