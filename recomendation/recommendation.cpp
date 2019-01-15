@@ -167,19 +167,26 @@ int main(int argc, char** argv) {
             cout << "vector has no info. Continue\n";
             continue;
         }
-        cout << "eimai prin to range search\n";
+        //cout << "eimai prin to range search\n";
         rangeSearch(rNN, vec, umap, hF, K_DEFAULT, L_DEFAULT, R_DEFAULT, COSINE);
-        cout << "set size = " << rNN.size() << endl;
+        //cout << "set size = " << rNN.size() << endl;
         //cout << counter++ << endl;
         const dVector* PVectors[P_DEFAULT]; //P better similar users
         keep_P_Best(rNN, dvec, P_DEFAULT, PVectors, COSINE);
-//        vector<double> max_values(dvec);
-//        double sum_simil = sum_similarity(rNN, dvec, COSINE, false);
-//        double sum_simil_abs = sum_similarity(rNN, dvec, COSINE, true);
-//        for (int i=0; i<P_DEFAULT; i++) {
-//            vector<double> current_vec = PVectors[i]->getVector();
-//
-//        }
+        if (!vec->normalization(PVectors, P_DEFAULT, COSINE)) {
+            cerr << "ERROR IN NORMALIZATION\n";
+        }
+        int kBest[5];
+        vec->recommend_K_Best(5, kBest);
+
+//        vector<double> temp = vec->getVector();
+//        for (double tempvalue : temp) cout << tempvalue << ' ';
+//        cout << endl;
+
+        cout << "Best values are:\n";
+        for (int i=0; i<5; i++) cout << kBest[i] << ' ';
+        cout << endl;
+
     }
 
 

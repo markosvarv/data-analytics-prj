@@ -22,9 +22,13 @@ public:
 
     void setUnknownElements ();
 
-    void normalize();
+    int normalization(const dVector* bestNeighbors[], int P, int metric);
 
     double getAverage() const;
+
+    double getVectorValue(unsigned long index) const;
+
+    int recommend_K_Best (int k, int kbest []);
 
 
     void setCluster_num (int cluster) {

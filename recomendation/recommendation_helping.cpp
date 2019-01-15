@@ -20,9 +20,6 @@
 using namespace std;
 
 
-
-
-
 int readVectors(list<dVector*>& dataList, const string& filename) {
     //cout << "filename = " << filename;
     ifstream in(filename);
