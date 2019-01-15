@@ -34,7 +34,7 @@ public:
     void setCluster_num (int cluster) {
         cluster_num=cluster;
     }
-    int getCluster_num () {
+    int getCluster_num () const {
         return cluster_num;
     }
 

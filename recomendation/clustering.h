@@ -16,6 +16,8 @@ void clustering_algorithms (int k, int metric, vector<dVector*>& dataVector, Clu
 void random_init (set<int>& centers, int k, vector<dVector*>& dataVector);
 double silhouette (vector<dVector*>& dataVector, Cluster clusters[], int metric);
 
+void getClusterVectors (set<dVector*>& vectors, dVector* query, const Cluster clusters[]);
+
 double di (int i, set<int>& centers, vector<dVector*>& dataVector, int metric);
 double pr (int r, set<int>& centers, vector<dVector*>& dataVector, int metric);
 int kmeanspp_init (set<int>& centers, vector<dVector*>& dataVector, int metric, unsigned int k);

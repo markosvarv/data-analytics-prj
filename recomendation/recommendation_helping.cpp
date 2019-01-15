@@ -16,14 +16,16 @@
 #include "Tweet.h"
 #include "recommendation_helping.h"
 #include "parameter_values.h"
+#include "hFunction.h"
+#include "lsh.h"
 
 using namespace std;
 
 
-//int firstalgorithm (list<vb) {
-//    cout << "size = " << uVectors.size() << endl;
+//int recommend_to_allUsers (list<dVector*>& vectors, unordered_map<string, list<dVector*>> umap[], vector<hFunction> hF[]) {
+//    cout << "size = " << vectors.size() << endl;
 //    int counter=0;
-//    for (dVector* vec : uVectors) {
+//    for (dVector* vec : vectors) {
 //        //cout << "mphka sto uVectors\n";
 //        set<dVector*> rNN;
 //        vector<double> dvec = vec->getVector();

@@ -32,7 +32,7 @@ public:
         return vectors.size();
     }
 
-    set<dVector*>& getVectors ();
+    set<dVector*> getVectors () const;
 
     double silhouette_sum (vector<dVector*>& dataVector, Cluster clusters[], int cluster_num, int metric);
 

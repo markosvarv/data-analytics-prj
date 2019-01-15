@@ -8,6 +8,7 @@
 
 #define K_DEFAULT 5
 #define VU_NUM 150
+#define W_DEFAULT 200
 #define R_DEFAULT 100
 #define P_DEFAULT 20
 //#define W_VALUE 4

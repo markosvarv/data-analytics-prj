@@ -95,6 +95,6 @@ void Cluster::eraseVector (dVector* vector) {
     vectors.erase(vector);
 }
 
-set<dVector*>& Cluster::getVectors () {
+set<dVector*> Cluster::getVectors () const {
     return vectors;
 }

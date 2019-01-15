@@ -187,6 +187,12 @@ bool kmeans_assignment (vector<dVector*>& dataVector, Cluster clusters[], int me
     return change;
 }
 
+void getClusterVectors (set<dVector*>& vectors, dVector* query, const Cluster clusters[]) {
+    int query_cluster_num = query->getCluster_num();
+    vectors = clusters[query_cluster_num].getVectors();
+    vectors.erase(query);
+}
+
 //return the cluster id with the nearest center from the object obj
 tuple<int, int, double> getNearestCluster (const vector<double>& obj, Cluster clusters[], int metric, unsigned int clusters_num) {
     //auto begin = chrono::high_resolution_clock::now();
