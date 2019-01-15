@@ -116,6 +116,50 @@ int main(int argc, char** argv) {
         uVectors.push_back(dvec);
     }
 
+
+    list<dVector*> dataList;
+    if (!readVectors(dataList, "data/twitter_dataset_small_v2.csv")) {
+        cerr << "Error while reading input file\n";
+        return -1;
+    }
+    //copy the contents of the list to a new vector for easier management
+    vector<dVector*> dataVector{ std::make_move_iterator(std::begin(dataList)),
+                                 std::make_move_iterator(std::end(dataList)) };
+
+    Cluster clusters[VU_NUM];
+    clustering_algorithms (VU_NUM, COSINE, dataVector, clusters);
+
+    list<dVector*> cVectors;
+    //for every cluster
+    for (unsigned long cluster_num=0; cluster_num<VU_NUM; cluster_num++) {
+        vector<double> cVec;
+        cVec.reserve(coins.size());
+
+        int coin_num=0;
+        int id;
+        set<dVector*> vectors = clusters[cluster_num].getVectors();
+        for (string& coin : coins) { //for every coin
+            double cluster_coin_sent=numeric_limits<double>::max();
+            double cluster_coin_sent_sum=0;
+            for (dVector* tweet : vectors) {
+                if (tweets[tweet->getID()]) {
+                    if (tweets[tweet->getID()]->containsCrypto(coin)) {
+                        cluster_coin_sent_sum += tweets[tweet->getID()]->getSentiment();
+                        cluster_coin_sent = cluster_coin_sent_sum;
+                    }
+                }
+                else cout << "PROBLEMA tweet_id = " << tweet->getID() << endl;
+                //id = int(tweet->getUserid());
+            }
+            cVec.emplace_back(cluster_coin_sent);
+            //cVectors[cluster_num][coin_num] = cluster_coin_sent_sum;
+            coin_num++;
+        }
+        auto dvec = new dVector(cVec, id);
+        dvec->setUnknownElements();
+        cVectors.push_back(dvec);
+    }
+
     //for (dVector* vec : uVectors) {
         //vec->normalize();
 
@@ -188,48 +232,7 @@ int main(int argc, char** argv) {
 
 
 
-//    list<dVector*> dataList;
-//    if (!readVectors(dataList, "data/twitter_dataset_small_v2.csv")) {
-//        cerr << "Error while reading input file\n";
-//        return -1;
-//    }
-//    //copy the contents of the list to a new vector for easier management
-//    vector<dVector*> dataVector{ std::make_move_iterator(std::begin(dataList)),
-//                                 std::make_move_iterator(std::end(dataList)) };
-//
-//    Cluster clusters[VU_NUM];
-//    clustering_algorithms (VU_NUM, COSINE, dataVector, clusters);
-//
-//    list<dVector*> cVectors;
-//    //for every cluster
-//    for (unsigned long cluster_num=0; cluster_num<VU_NUM; cluster_num++) {
-//        vector<double> cVec;
-//        cVec.reserve(coins.size());
-//
-//        int coin_num=0;
-//        int id;
-//        set<dVector*> vectors = clusters[cluster_num].getVectors();
-//        for (string& coin : coins) { //for every coin
-//            double cluster_coin_sent=numeric_limits<double>::max();
-//            double cluster_coin_sent_sum=0;
-//            for (dVector* tweet : vectors) {
-//                if (tweets[tweet->getID()]) {
-//                    if (tweets[tweet->getID()]->containsCrypto(coin)) {
-//                        cluster_coin_sent_sum += tweets[tweet->getID()]->getSentiment();
-//                        cluster_coin_sent = cluster_coin_sent_sum;
-//                    }
-//                }
-//                else cout << "PROBLEMA tweet_id = " << tweet->getID() << endl;
-//                //id = int(tweet->getUserid());
-//            }
-//            cVec.emplace_back(cluster_coin_sent);
-//            //cVectors[cluster_num][coin_num] = cluster_coin_sent_sum;
-//            coin_num++;
-//        }
-//        auto dvec = new dVector(cVec, id);
-//        dvec->setUnknownElements();
-//        cVectors.push_back(dvec);
-//    }
+
 //
 ////    for (dVector* vec : cVectors) {
 ////        vector<double> cur_vec = vec->getVector();
@@ -288,49 +291,49 @@ int main(int argc, char** argv) {
 //    }
 
     //copy the contents of the list to a new vector for easier management
-    vector<dVector*> dataVector{ std::make_move_iterator(std::begin(uVectors)),
-                                 std::make_move_iterator(std::end(uVectors)) };
+    vector<dVector*> dataVector2{ std::make_move_iterator(std::begin(cVectors)),
+                                 std::make_move_iterator(std::end(cVectors)) };
 
-    Cluster clusters[W_DEFAULT];
+    Cluster clusters2[W_DEFAULT];
 
-    clustering_algorithms (W_DEFAULT, COSINE, dataVector, clusters);
+    clustering_algorithms (W_DEFAULT, EUCLIDEAN, dataVector2, clusters2);
 
     //cout << "size = " << cVectors.size() << endl;
-//    int counter=0;
-//    for (dVector* vec : uVectors) {
-//        //cout << "mphka sto uVectors\n";
-//        set<dVector*> rNN;
-//        vector<double> dvec = vec->getVector();
-//        if (!vec->hasInfo()) {
-//            cout << "vector has no info. Continue\n";
-//            continue;
-//        }
-//        //rangeSearch(rNN, vec, umap, hF, K_DEFAULT, L_DEFAULT, R_DEFAULT, COSINE);
-//
-//        getClusterVectors(rNN, vec, clusters);
-//
-//
-//        //cout << "set size = " << rNN.size() << endl;
-//        //cout << counter++ << endl;
-//        const dVector* PVectors[P_DEFAULT]; //P better similar users
-//        keep_P_Best(rNN, dvec, P_DEFAULT, PVectors, COSINE);
-//        if (!vec->normalization(PVectors, P_DEFAULT, COSINE)) {
-//            cerr << "ERROR IN NORMALIZATION\n";
-//        }
-//
-//
-////        vector<double> temp = vec->getVector();
-////        for (double tempvalue : temp) cout << tempvalue << ' ';
-////        cout << endl;
-//
-//
-//        int kBest[5];
-//        vec->recommend_K_Best(5, kBest);
-//        cout << "Best values are:\n";
-//        for (int i=0; i<5; i++) cout << kBest[i] << ' ';
+    int counter=0;
+    for (dVector* vec : uVectors) {
+        //cout << "mphka sto uVectors\n";
+        set<dVector*> rNN;
+        vector<double> dvec = vec->getVector();
+        if (!vec->hasInfo()) {
+            cout << "vector has no info. Continue\n";
+            continue;
+        }
+        //rangeSearch(rNN, vec, umap, hF, K_DEFAULT, L_DEFAULT, R_DEFAULT, COSINE);
+
+        getClusterVectors(rNN, vec, clusters2);
+
+
+        //cout << "set size = " << rNN.size() << endl;
+        //cout << counter++ << endl;
+        const dVector* PVectors[P_DEFAULT]; //P better similar users
+        keep_P_Best(rNN, dvec, P_DEFAULT, PVectors, COSINE);
+        if (!vec->normalization(PVectors, P_DEFAULT, COSINE)) {
+            cerr << "ERROR IN NORMALIZATION\n";
+        }
+
+
+//        vector<double> temp = vec->getVector();
+//        for (double tempvalue : temp) cout << tempvalue << ' ';
 //        cout << endl;
-//
-//    }
+
+
+        int kBest[5];
+        vec->recommend_K_Best(5, kBest);
+        cout << "Best values are:\n";
+        for (int i=0; i<5; i++) cout << kBest[i] << ' ';
+        cout << endl;
+
+    }
 
 //    map<string, double>::iterator it;
 //    if((it = vader_dict.find("swearing")) != vader_dict.end())
