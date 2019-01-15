@@ -7,6 +7,7 @@
 #define UNKNOWN_METRIC 0
 
 #define K_DEFAULT 5
+#define VU_NUM 150
 #define R_DEFAULT 100
 #define P_DEFAULT 20
 //#define W_VALUE 4

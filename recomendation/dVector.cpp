@@ -182,7 +182,10 @@ int dVector::recommend_K_Best (int k, int kbest []) {
         //cout << max[i] << ' ';
         kbest[i]=rand_num;
     }
-    cout << endl;
+    cout << "Best before values are:\n";
+    for (int i=0; i<2; i++) cout << kbest[i] << ' ';
+    //cout << endl;
+    //cout << endl;
     for (int cur=0; cur<p.size(); cur++) {
         if (!known_elements[cur]) {
             for (int i=0; i<k; i++) {

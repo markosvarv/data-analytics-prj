@@ -57,8 +57,8 @@ void clustering_algorithms (int k, int metric, vector<dVector*>& dataVector, Clu
     cout << "eimai prin tin silouet\n";
     //print_results(out, clusters, dataVector, k, sec, init, assignment, update, metric, complete);
 
-    double ev = silhouette(dataVector, clusters, metric);
-    cout << "ev swsto = " << ev << endl;
+    //double ev = silhouette(dataVector, clusters, metric);
+    //cout << "ev swsto = " << ev << endl;
 }
 
 double silhouette (vector<dVector*>& dataVector, Cluster clusters[], int metric) {

@@ -20,6 +20,41 @@
 using namespace std;
 
 
+//int firstalgorithm (list<vb) {
+//    cout << "size = " << uVectors.size() << endl;
+//    int counter=0;
+//    for (dVector* vec : uVectors) {
+//        //cout << "mphka sto uVectors\n";
+//        set<dVector*> rNN;
+//        vector<double> dvec = vec->getVector();
+//        if (!vec->hasInfo()) {
+//            cout << "vector has no info. Continue\n";
+//            continue;
+//        }
+//        //cout << "eimai prin to range search\n";
+//        rangeSearch(rNN, vec, umap, hF, K_DEFAULT, L_DEFAULT, R_DEFAULT, COSINE);
+//        //cout << "set size = " << rNN.size() << endl;
+//        //cout << counter++ << endl;
+//        const dVector* PVectors[P_DEFAULT]; //P better similar users
+//        keep_P_Best(rNN, dvec, P_DEFAULT, PVectors, COSINE);
+//        if (!vec->normalization(PVectors, P_DEFAULT, COSINE)) {
+//            cerr << "ERROR IN NORMALIZATION\n";
+//        }
+//        int kBest[5];
+//        vec->recommend_K_Best(5, kBest);
+//
+////        vector<double> temp = vec->getVector();
+////        for (double tempvalue : temp) cout << tempvalue << ' ';
+////        cout << endl;
+//
+//        cout << "Best values are:\n";
+//        for (int i=0; i<5; i++) cout << kBest[i] << ' ';
+//        cout << endl;
+//
+//    }
+//}
+
+
 int readVectors(list<dVector*>& dataList, const string& filename) {
     //cout << "filename = " << filename;
     ifstream in(filename);
